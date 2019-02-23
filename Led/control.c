@@ -9,6 +9,10 @@
 #include "led.h"
 
 
+#define MAGIC_NUMBER	100
+#define BLINK	_IOWR(MAGIC_NUMBER,0,char)
+#define ON	_IOWR(MAGIC_NUMBER,1,char)
+#define OFF	_IOWR(MAGIC_NUMBER,2,char)
 
 void* gpio_base = NULL;
 
@@ -99,13 +103,6 @@ static ssize_t dev_write(struct file *filep, const char __user *buf, size_t len,
 	kfree(kernel_buf);
         return len;
 }
-
-
-
-
-#define BLINK	1
-#define	ON	2
-#define	OFF	3
 
 static long dev_ioctl(struct file* fd, unsigned int cmd, unsigned long arg)
 {

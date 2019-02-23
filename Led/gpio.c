@@ -5,6 +5,18 @@ unsigned int* set_high;
 unsigned int* set_low;
 
 unsigned long int j,i;
+
+
+void delay(void)
+{
+	for(i=0;i<1000;i++)
+	{
+		for(j=0;j<50;j++)
+		{
+		}
+	}
+}
+
 void set_pin_mode(unsigned int* gpio_base, unsigned char pin,unsigned char mode)
 {
 	unsigned int temp_reg;
@@ -46,17 +58,6 @@ void led_off(unsigned int* gpio_base)
         temp_reg |= 0x01u << 4;
         write_reg(set_low,temp_reg);
 
-}
-
-void delay(void)
-{
-	int i = 0, j = 0;
-	for(i=0;i<1000;i++)
-	{
-		for(j=0;j<50;j++)
-		{
-		}
-	}
 }
 
 void blink_led(unsigned int* gpio_base)

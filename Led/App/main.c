@@ -4,14 +4,18 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#define MAGIC_NUMBER	100
+#define BLINK 	_IOWR(MAGIC_NUMBER,0,char)
+#define ON	_IOWR(MAGIC_NUMBER,1,char)
+#define OFF	_IOWR(MAGIC_NUMBER,2,char)
+
+
 #define MAX_SIZE_BUFF	1024
 char buff[MAX_SIZE_BUFF] = {0};
 
-#define BLINK	1
-#define ON	2
-#define OFF	3
-#define READ	4
-#define WRITE 	5
+
+
+
 int main(int argc, char** argv)
 {
 	int fd = open("/dev/led_pi3",O_WRONLY);
