@@ -1,0 +1,2 @@
+I'm parent process
+I'm child process

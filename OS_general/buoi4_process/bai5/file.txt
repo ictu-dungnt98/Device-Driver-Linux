@@ -1,0 +1,5 @@
+a.out
+child
+child.c
+file.txt
+main.c
