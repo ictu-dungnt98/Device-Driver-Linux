@@ -1,0 +1,11 @@
+pid of A: 6974
+0
+pid of B: 6989
+a
+pid of A: 6974
+’pid of A: 7222
+0
+pid of B: 7229
+1
+pid of A: 7222
+2
