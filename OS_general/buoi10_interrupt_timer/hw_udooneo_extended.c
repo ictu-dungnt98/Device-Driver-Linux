@@ -30,7 +30,7 @@ int gpio_init(unsigned int *gpio,
 		temp = read_reg(gpio, ~(0x01 << pin));
 		temp |= 0x01 << pin;
 		write_reg(gpio, temp);
-		pr_infor("setting output mode\n");
+		pr_info("setting output mode\n");
 		/* set ouput pin to 1 */
 		temp = read_reg(dir_reg, ~(0x01 << pin));
 		temp |= (0x01 << pin);
