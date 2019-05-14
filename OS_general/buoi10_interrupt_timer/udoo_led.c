@@ -84,7 +84,13 @@ static ssize_t dev_read(
 	char __user *buf,
 	size_t len, loff_t *offset)
 {
-	copy_to_user(buf, kernel_buf, strlen(kernel_buf));
+	int res = 0;
+
+	res = copy_to_user(buf, kernel_buf, strlen(kernel_buf));
+	if (res < strlen(kernel_buf)) {
+		pr_err("can not read from device\n");
+		return -EFAULT;
+	}
 	pr_info("Read device file\n");
 	return strlen(kernel_buf);
 }
@@ -93,9 +99,13 @@ static ssize_t dev_write(
 	const char __user *buf,
 	size_t len, loff_t *offset)
 {
-	long size = 0;
+	int res = 0;
 
-	size = copy_from_user(kernel_buf, buf, len-1);
+	res = copy_from_user(kernel_buf, buf, len-1);
+	if (res < len-1) {
+		pr_err("Can not write to device file\n");
+		return -EFAULT;
+	}
 	pr_info("Write device file value %s\n", kernel_buf);
 	return len;
 }

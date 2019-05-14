@@ -652,9 +652,6 @@ deps_/home/trongdung/Device-Driver-Linux/OS_general/buoi10_interrupt_timer/udoo_
     $(wildcard include/config/modules/use/elf/rel.h) \
     $(wildcard include/config/modules/use/elf/rela.h) \
   arch/x86/include/asm/orc_types.h \
-  include/linux/cdev.h \
-  include/linux/kdev_t.h \
-  include/uapi/linux/kdev_t.h \
   include/linux/device.h \
     $(wildcard include/config/debug/devres.h) \
     $(wildcard include/config/generic/msi/irq/domain.h) \
@@ -686,6 +683,8 @@ deps_/home/trongdung/Device-Driver-Linux/OS_general/buoi10_interrupt_timer/udoo_
     $(wildcard include/config/mandatory/file/locking.h) \
     $(wildcard include/config/migration.h) \
   include/linux/wait_bit.h \
+  include/linux/kdev_t.h \
+  include/uapi/linux/kdev_t.h \
   include/linux/dcache.h \
   include/linux/rculist.h \
   include/linux/rculist_bl.h \
@@ -844,6 +843,7 @@ deps_/home/trongdung/Device-Driver-Linux/OS_general/buoi10_interrupt_timer/udoo_
     $(wildcard include/config/x86/dev/dma/ops.h) \
     $(wildcard include/config/pci/domains.h) \
   include/linux/pm_wakeup.h \
+  include/linux/cdev.h \
   include/linux/slab.h \
     $(wildcard include/config/debug/slab.h) \
     $(wildcard include/config/failslab.h) \
