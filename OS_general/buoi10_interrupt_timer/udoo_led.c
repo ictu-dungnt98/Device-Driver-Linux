@@ -13,11 +13,13 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/device.h>
 #include <linux/cdev.h>
 #include <linux/fs.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/io.h>
+#include <linux/printk.h>
 #include "./hw_udooneo_extended.h"
 
 #define ONE_GPIO_SIZE		(((int)PAGE_SIZE) * 4)

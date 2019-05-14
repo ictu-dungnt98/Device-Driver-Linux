@@ -1,5 +1,6 @@
 #include <hw_udooneo_extended.h>
 #include <linux/string.h>
+#include <linux/printk.h>
 
 int gpio_init(unsigned int *gpio,
 	unsigned int *iomuxc
