@@ -18,32 +18,30 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/io.h>
-#include "/home/trongdung/Device-Driver-Linux/OS_general/buoi10_interrupt_timer/hw_udooneo_extended.h"
+#include "./hw_udooneo_extended.h"
 
 #define ONE_GPIO_SIZE		(((int)PAGE_SIZE) * 4)
 #define MODULE_GPIO_SIZE	(ONE_GPIO_SIZE * 7)
-#define MOUDLE_IOMUX_SIZE	(((int)PAGE_SIZE) * 4)
+#define MODULE_IOMUX_SIZE	(((int)PAGE_SIZE) * 4)
 
-static int dev_open(
-	const struct inode *,
-	const struct file *);
+static int dev_open(struct inode *, struct file *);
 
 static int dev_close(
-	const struct inode *,
-	const struct file *);
+	struct inode *,
+	struct file *);
 
 static ssize_t dev_read(
-	const struct file *,
+	struct file *,
 	char __user *,
 	size_t, loff_t *);
 
 static ssize_t dev_write(
-	const struct file *,
+	struct file *,
 	const char __user *,
 	size_t, loff_t *);
 
 static long dev_ioctl(
-	const struct file *fd,
+	struct file *fd,
 	unsigned int cmd,
 	unsigned long arg);
 
@@ -52,9 +50,9 @@ MODULE_AUTHOR("TRONG DUNG");
 MODULE_DESCRIPTION("THIS IS MY FIRST KERNEL MODULE");
 
 static dev_t  dev;
-static const struct cdev   c_dev;
-static const struct class  *class_p;
-static const struct device *device_p;
+static struct cdev   c_dev;
+static struct class  *class_p;
+static struct device *device_p;
 
 static const struct file_operations fops = {
 	.open = dev_open,
@@ -74,13 +72,13 @@ static int dev_open(
 	pr_info("Open device file\n");
 	return 0;
 }
-static int dev_close(const struct inode *inodep, const struct file *filep)
+static int dev_close(struct inode *inodep, struct file *filep)
 {
 	pr_info("Closed device file\n");
 	return 0;
 }
 static ssize_t dev_read(
-	const struct file *filep,
+	struct file *filep,
 	char __user *buf,
 	size_t len, loff_t *offset)
 {
@@ -89,7 +87,7 @@ static ssize_t dev_read(
 	return strlen(kernel_buf);
 }
 static ssize_t dev_write(
-	const struct file *filep,
+	struct file *filep,
 	const char __user *buf,
 	size_t len, loff_t *offset)
 {
@@ -101,7 +99,7 @@ static ssize_t dev_write(
 }
 
 static long dev_ioctl(
-	const struct file *fd,
+	struct file *fd,
 	unsigned int cmd,
 	unsigned long arg)
 {
@@ -156,13 +154,13 @@ static int __init init_example(void)
 		goto gpio_map_failed;
 	}
 
-	res = gpio_init(gpio, iomux, GPIO1, 4,"OUTPUT");
+	res = gpio_init(gpio, iomux, GPIO1, 4, "OUTPUT");
 	if (res == -1) {
 		pr_err("Error occur when init gpio\n");
 		goto gpio_init_failed;
 	}
 
-	res = gpio_init(gpio, iomux, GPIO1, 5,"INPUT");
+	res = gpio_init(gpio, iomux, GPIO1, 5, "INPUT");
 	if (res == -1) {
 		pr_err("Error occur when init gpio\n");
 		goto gpio_init_failed;

@@ -10,5 +10,5 @@ clean:
 
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 check:
-	././checkpatch.pl --no-tree -f $(src-file)
+	./checkpatch.pl --no-tree --ignore CONST_STRUCT --show-types -f $(src-file)
 
