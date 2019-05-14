@@ -1,5 +1,5 @@
 obj-m := gpio.o
-gpio-objs := udoo_led.o hw_udooneo_exntended.o
+gpio-objs := udoo_led.o hw_udooneo_extended.o
 
 src-file := ./*.c
 
