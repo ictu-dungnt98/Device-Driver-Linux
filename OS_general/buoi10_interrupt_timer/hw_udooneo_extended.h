@@ -2,7 +2,7 @@
 #define _HW_UDOO_EXTENDED_H_
 
 #define read_reg(reg, mask)	*((unsigned long *)reg) & (mask)
-#define write_reg(reg,value)	*((int*)reg) = value
+#define write_reg(reg,value)	*((unsigned long*)reg) = value
 
 #define GPIO_BASE		0x0209C000u
 #define GPIO1			0

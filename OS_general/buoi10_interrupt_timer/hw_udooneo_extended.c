@@ -20,23 +20,26 @@ int gpio_init(unsigned int *gpio,
 	temp = read_reg(iomuxc, MUX_MODE_MASK);
 	temp |= ALT5;
 	write_reg(iomuxc, temp);
+	pr_info("set mode succes\n");
 	/* setting input or output mode */
 	if (!strcmp(mode, "INPUT")) {
 		temp = read_reg(gpio, ~(0x01 << pin));
 		write_reg(gpio, temp);
+		pr_info("setting input mode\n");
 	} else if (!strcmp(mode, "OUTPUT")) {
 		temp = read_reg(gpio, ~(0x01 << pin));
 		temp |= 0x01 << pin;
 		write_reg(gpio, temp);
+		pr_infor("setting output mode\n");
 		/* set ouput pin to 1 */
 		temp = read_reg(dir_reg, ~(0x01 << pin));
 		temp |= (0x01 << pin);
 		write_reg(dir_reg, temp);
+		pr_info("write 1 to pin");
 	} else {
 		pr_err("Invalid argument mode\n");
 		return -1;
 	}
-
 	return 0;
 }
 int gpio_setPin(unsigned int *gpio,

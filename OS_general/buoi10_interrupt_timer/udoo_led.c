@@ -171,12 +171,13 @@ static int __init init_example(void)
 		pr_err("Error occur when init gpio\n");
 		goto gpio_init_failed;
 	}
-
+	pr_info("init gpio 4 success\n");
 	res = gpio_init(gpio, iomux, GPIO1, 5, "INPUT");
 	if (res == -1) {
 		pr_err("Error occur when init gpio\n");
 		goto gpio_init_failed;
 	}
+	pr_info("init gpio 5 success\n");
 
 	return 0;
 
