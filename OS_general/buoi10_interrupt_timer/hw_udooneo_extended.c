@@ -7,7 +7,7 @@ int gpio_init(unsigned int *gpio,
 	unsigned char port,
 	unsigned char pin, const char *mode)
 {
-	unsigned int *temp = NULL;
+	unsigned int temp = 0;
 	unsigned int *dir_reg = NULL;
 	unsigned int *port_add = NULL;
 
@@ -52,7 +52,7 @@ int gpio_setPin(unsigned int *gpio,
 	dir_reg = port_add + GPIO_GDIR;
 	/* set output pin bt value */
 	temp = read_reg(dir_reg, ~(0x01 << pin));
-	write_reg = (dir_reg, temp);
+	write_reg(dir_reg, temp);
 	return 0;
 }
 
