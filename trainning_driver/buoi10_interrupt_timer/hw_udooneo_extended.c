@@ -17,10 +17,10 @@ int gpio_init(unsigned int *gpio,
 	pr_info("port = %d\n", port+1);
         pr_info("pin = %d\n", pin);
 
-	iomuxc_pin = iomuxc + IOMUXC_GPIO1(pin);
 	gpio += port;
 	gpio_dr = gpio + GPIO_DR;
 	gpio_dir = gpio + GPIO_GDIR;
+	iomuxc_pin = iomuxc + IOMUXC_GPIO1(pin);
 
 	pr_info("iomuxc   iomuxc_gpio1_%d    iomuxc_pin:\n", pin);
 	pr_info("%p +    %d        =      %p\n",(void *)iomuxc, IOMUXC_GPIO1(pin), iomuxc_pin);	
@@ -48,15 +48,12 @@ int gpio_init(unsigned int *gpio,
 		pr_info("setting output mode, value of gpio_dir = %ld\n",read_reg(gpio_dir, 0xFFFFFFFF));
 
 		/* set ouput pin to 1 */
-		temp = read_reg(gpio_dr, ~(0x01 << pin));
-		pr_info("value of gpio_dr = %d\n", temp);
-		temp |= (0x01 << pin);
-		write_reg(gpio_dr, temp);
-		pr_info("value of gpio_dr = %d\n", temp);
+		gpio_setPin(gpio,port,pin,1);
 	} else {
 		pr_err("Invalid argument mode\n");
 		return -1;
 	}
+
 	return 0;
 }
 int gpio_setPin(unsigned int *gpio,
@@ -65,14 +62,19 @@ int gpio_setPin(unsigned int *gpio,
 	unsigned char value)
 {
 	unsigned int temp = 0;
-	unsigned int *dir_reg = NULL;
-	unsigned int *port_add = NULL;
+	unsigned int *gpio_dr = NULL;
 
-	port_add = (gpio + port);
-	dir_reg = port_add + GPIO_GDIR;
-	/* set output pin bt value */
-	temp = read_reg(dir_reg, ~(0x01 << pin));
-	write_reg(dir_reg, temp);
+	gpio  = gpio + port;
+	gpio_dr = gpio + GPIO_DR;
+	
+	/* write value to pin */
+	temp = read_reg(gpio_dr, ~(0x01 << pin));
+	pr_info("value of gpio_dr = %d\n", temp);
+
+	temp |= (value << pin);
+	write_reg(gpio_dr, temp);
+	pr_info("value of gpio_dr = %d\n", temp);
+
 	return 0;
 }
 
@@ -81,15 +83,14 @@ char gpio_getPin(unsigned int *gpio,
 	unsigned char pin)
 {
 	unsigned int res = 0;
-	unsigned int *port_add = NULL;
-	unsigned int *gpio_gdir = NULL;
+	unsigned int *gpio_dr = NULL;
 
-	port_add = gpio + port;
-	gpio_gdir = port_add + GPIO_GDIR;
-	res = read_reg(gpio_gdir, (0x01 << pin));
+	gpio += port;
+	gpio_dr = gpio + GPIO_DR;
+	res = read_reg(gpio_dr, (0x01 << pin));
 
 	if (res)
 		return 1;
 	else
-		return 0;
+		return res;
 }

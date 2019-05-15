@@ -65,7 +65,8 @@ static const struct file_operations fops = {
 };
 
 char kernel_buf[100];
-
+static int *gpio;
+static int *iomux;
 
 static int dev_open(
 	struct inode *inodep,
@@ -120,8 +121,6 @@ static long dev_ioctl(
 
 static int __init init_example(void)
 {
-	int *gpio = NULL;
-	int *iomux = NULL;
 	char res = 0;
 
 	pr_info("Insmod kernel module driver led\n");
@@ -201,6 +200,7 @@ alloc_dev_failed:
 
 static void __exit exit_example(void)
 {
+	gpio_setPin(gpio,GPIO(1),4,0);
 	cdev_del(&c_dev);
 	device_destroy(class_p, dev);
 	class_destroy(class_p);
