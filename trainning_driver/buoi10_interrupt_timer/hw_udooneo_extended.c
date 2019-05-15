@@ -15,15 +15,13 @@ int gpio_init(unsigned int *gpio,
 	pr_info("virtual iomuxc = %p\n", iomuxc);
 	pr_info("virtual gpio = %p\n", gpio);
 	pr_info("port = %d\n", port+1);
-        pr_info("pin = %d\n", pin);
+	pr_info("pin = %d\n", pin);
 
 	gpio += port;
 	gpio_dr = gpio + GPIO_DR;
 	gpio_dir = gpio + GPIO_GDIR;
 	iomuxc_pin = iomuxc + IOMUXC_GPIO1(pin);
 
-	pr_info("iomuxc   iomuxc_gpio1_%d    iomuxc_pin:\n", pin);
-	pr_info("%p +    %d        =      %p\n",(void *)iomuxc, IOMUXC_GPIO1(pin), iomuxc_pin);	
 	pr_info("gpio_%d = %p\n", port+1, (void *)gpio);
 	pr_info("virtual gpio%d_dr = %p\n", port+1, gpio_dr);
 	pr_info("virual gpio%d_dir = %p\n", port+1, gpio_dir);
@@ -33,22 +31,22 @@ int gpio_init(unsigned int *gpio,
 	temp |= ALT5;
 	write_reg(iomuxc_pin, temp);
 	pr_info("set mode succes\n");
-	
+
 	/* setting input or output mode */
 	if (!strcmp(mode, "INPUT")) {
 		temp = read_reg(gpio_dir, ~(0x01 << pin));
 		pr_info("value of gpio_dir = %ld\n", temp);
 		write_reg(gpio_dir, temp);
-		pr_info("setting input mode, value of gpio_dir = %ld\n", read_reg(gpio_dir, 0xFFFFFFFF));
+		pr_info("setting input mode\n");
 	} else if (!strcmp(mode, "OUTPUT")) {
 		temp = read_reg(gpio_dir, ~(0x01 << pin));
 		pr_info("value of gpio_dir = %ld\n", temp);
 		temp |= 0x01 << pin;
 		write_reg(gpio_dir, temp);
-		pr_info("setting output mode, value of gpio_dir = %ld\n",read_reg(gpio_dir, 0xFFFFFFFF));
+		pr_info("setting output mode\n");
 
 		/* set ouput pin to 1 */
-		gpio_setPin(gpio,port,pin,1);
+		gpio_setPin(gpio, port, pin, 1);
 	} else {
 		pr_err("Invalid argument mode\n");
 		return -1;
@@ -66,7 +64,7 @@ int gpio_setPin(unsigned int *gpio,
 
 	gpio  = gpio + port;
 	gpio_dr = gpio + GPIO_DR;
-	
+
 	/* write value to pin */
 	temp = read_reg(gpio_dr, ~(0x01 << pin));
 	pr_info("value of gpio_dr = %d\n", temp);
@@ -78,11 +76,11 @@ int gpio_setPin(unsigned int *gpio,
 	return 0;
 }
 
-char gpio_getPin(unsigned int *gpio,
+unsigned char gpio_getPin(unsigned int *gpio,
 	unsigned char port,
 	unsigned char pin)
 {
-	unsigned int res = 0;
+	unsigned char res = 0;
 	unsigned int *gpio_dr = NULL;
 
 	gpio += port;
@@ -92,5 +90,5 @@ char gpio_getPin(unsigned int *gpio,
 	if (res)
 		return 1;
 	else
-		return res;
+		return 0;
 }

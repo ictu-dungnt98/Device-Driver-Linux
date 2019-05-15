@@ -20,8 +20,11 @@
 #include <linux/uaccess.h>
 #include <linux/io.h>
 #include <linux/printk.h>
+#include <linux/timer.h>
+#include <linux/jiffies.h>
 #include "./hw_udooneo_extended.h"
 
+#define DELAY			1
 #define GPIOx_SIZE		0x4000
 #define MODULE_GPIO_SIZE	(GPIOx_SIZE * 7)
 #define MODULE_IOMUX_SIZE	0x4000
@@ -55,6 +58,8 @@ static dev_t  dev;
 static struct cdev   c_dev;
 static struct class  *class_p;
 static struct device *device_p;
+static struct timer_list my_timer;
+
 
 static const struct file_operations fops = {
 	.open = dev_open,
@@ -119,6 +124,27 @@ static long dev_ioctl(
 	return 0;
 }
 
+
+
+
+
+static void timer_handle(unsigned long data)
+{
+	int pin = 0;
+	int delay = jiffies + DELAY * HZ;
+
+	pin = gpio_getPin(gpio, GPIO(1), 5);
+	if (pin == 1)
+		gpio_setPin(gpio, GPIO(1), 4, 1);
+	else
+		gpio_setPin(gpio, GPIO(1), 4, 0);
+
+	my_timer.expires = delay;
+	my_timer.function = (void *)timer_handle;
+	my_timer.data = 0;
+	add_timer(&my_timer);
+}
+
 static int __init init_example(void)
 {
 	char res = 0;
@@ -153,14 +179,14 @@ static int __init init_example(void)
 		goto cdev_add_fail;
 	}
 
-	pr_info("physical iomuxc = %p\n",(void *)IOMUXC_BASE);
+	pr_info("physical iomuxc = %p\n", (void *)IOMUXC_BASE);
 	iomux = ioremap(IOMUXC_BASE, MODULE_IOMUX_SIZE);
 	if (iomux == NULL) {
 		pr_err("Can not mapping iomux physical address with virtual address\n");
 		goto iomux_map_failed;
 	}
 
-	pr_info("physical gpio_base = %p\n\n",(void *)GPIO_BASE);
+	pr_info("physical gpio_base = %p\n\n", (void *)GPIO_BASE);
 	gpio = ioremap(GPIO_BASE, MODULE_GPIO_SIZE);
 	if (gpio == NULL) {
 		pr_err("Can not mapping gpio physical address to virtual address\n");
@@ -179,6 +205,12 @@ static int __init init_example(void)
 		goto gpio_init_failed;
 	}
 	pr_info("init gpio 5 success\n\n");
+
+	init_timer_on_stack(&my_timer);
+	my_timer.expires = jiffies + DELAY * HZ;
+	my_timer.function = (void *)timer_handle;
+	my_timer.data = 0;
+	add_timer(&my_timer);
 
 	return 0;
 
@@ -200,7 +232,9 @@ alloc_dev_failed:
 
 static void __exit exit_example(void)
 {
-	gpio_setPin(gpio,GPIO(1),4,0);
+	gpio_setPin(gpio, GPIO(1), 4, 0);
+	iounmap(gpio);
+	iounmap(iomux);
 	cdev_del(&c_dev);
 	device_destroy(class_p, dev);
 	class_destroy(class_p);
