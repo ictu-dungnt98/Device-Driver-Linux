@@ -22,9 +22,9 @@
 #include <linux/printk.h>
 #include "./hw_udooneo_extended.h"
 
-#define ONE_GPIO_SIZE		(((int)PAGE_SIZE) * 4)
-#define MODULE_GPIO_SIZE	(ONE_GPIO_SIZE * 7)
-#define MODULE_IOMUX_SIZE	(((int)PAGE_SIZE) * 4)
+#define GPIOx_SIZE		0x4000
+#define MODULE_GPIO_SIZE	(GPIOx_SIZE * 7)
+#define MODULE_IOMUX_SIZE	0x4000
 
 static int dev_open(struct inode *, struct file *);
 
@@ -122,7 +122,7 @@ static int __init init_example(void)
 {
 	int *gpio = NULL;
 	int *iomux = NULL;
-	int res = 0;
+	char res = 0;
 
 	pr_info("Insmod kernel module driver led\n");
 
@@ -154,30 +154,32 @@ static int __init init_example(void)
 		goto cdev_add_fail;
 	}
 
+	pr_info("physical iomuxc = %p\n",(void *)IOMUXC_BASE);
 	iomux = ioremap(IOMUXC_BASE, MODULE_IOMUX_SIZE);
 	if (iomux == NULL) {
 		pr_err("Can not mapping iomux physical address with virtual address\n");
 		goto iomux_map_failed;
 	}
 
+	pr_info("physical gpio_base = %p\n\n",(void *)GPIO_BASE);
 	gpio = ioremap(GPIO_BASE, MODULE_GPIO_SIZE);
 	if (gpio == NULL) {
 		pr_err("Can not mapping gpio physical address to virtual address\n");
 		goto gpio_map_failed;
 	}
 
-	res = gpio_init(gpio, iomux, GPIO1, 4, "OUTPUT");
+	res = gpio_init(gpio, iomux, GPIO(1), 4, "OUTPUT");
 	if (res == -1) {
 		pr_err("Error occur when init gpio\n");
 		goto gpio_init_failed;
 	}
-	pr_info("init gpio 4 success\n");
-	res = gpio_init(gpio, iomux, GPIO1, 5, "INPUT");
+	pr_info("init gpio 4 success\n\n");
+	res = gpio_init(gpio, iomux, GPIO(1), 5, "INPUT");
 	if (res == -1) {
 		pr_err("Error occur when init gpio\n");
 		goto gpio_init_failed;
 	}
-	pr_info("init gpio 5 success\n");
+	pr_info("init gpio 5 success\n\n");
 
 	return 0;
 

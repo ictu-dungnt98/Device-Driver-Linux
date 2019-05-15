@@ -5,25 +5,19 @@
 #define write_reg(reg,value)	*((unsigned long*)reg) = value
 
 #define GPIO_BASE		0x0209C000u
-#define GPIO1			0x0000
-#define GPIO2			0x1000
-#define GPIO3			0x2000
-#define GPIO4			0x3000
-#define GPIO5			0x4000
-#define GPIO6			0x5000
-#define GPIO7			0x6000
+#define GPIO(x)			(((int)x - 1) * 1000)			
 
-#define GPIO_DR			0x00u
-#define GPIO_GDIR		0x04u
-#define GPIP_PSR		0x08u
-#define GPIO_ICR1		0x0Cu
-#define GPIO_ICR2		0x10u
-#define GPIO_IMR		0x14u
-#define GPIO_ISR		0x18u
-#define GPIO_EDGE_SEL		0x1Cu
+#define GPIO_DR			0
+#define GPIO_GDIR		1
+#define GPIP_PSR		2
+#define GPIO_ICR1		3
+#define GPIO_ICR2		4
+#define GPIO_IMR		5
+#define GPIO_ISR		5
+#define GPIO_EDGE_SEL		7
 
 #define IOMUXC_BASE		0x020E0000u
-#define IOMUXC_GPIO1(x)		(0x14 * ((int)x))	
+#define IOMUXC_GPIO1(x)		(5+((int)x))	
 
 #define MUX_MODE_MASK		(~(0x0F << 0))
 
