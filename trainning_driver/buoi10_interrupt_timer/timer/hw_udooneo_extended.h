@@ -37,7 +37,7 @@ int gpio_setPin(unsigned int *base,
 	unsigned char port,
 	unsigned char pin,
 	unsigned char value);
-char gpio_getPin(unsigned int *gpio, unsigned char port, unsigned char pin);
+unsigned char gpio_getPin(unsigned int *gpio, unsigned char port, unsigned char pin);
 
 
 

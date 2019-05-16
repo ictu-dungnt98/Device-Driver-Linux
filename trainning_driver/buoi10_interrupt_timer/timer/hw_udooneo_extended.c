@@ -67,10 +67,9 @@ int gpio_setPin(unsigned int *gpio,
 
 	/* write value to pin */
 	temp = read_reg(gpio_dr, ~(0x01 << pin));
-	pr_info("value of gpio_dr = %d\n", temp);
-
 	temp |= (value << pin);
 	write_reg(gpio_dr, temp);
+	
 	pr_info("value of gpio_dr = %d\n", temp);
 
 	return 0;

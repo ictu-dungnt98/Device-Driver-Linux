@@ -232,6 +232,7 @@ alloc_dev_failed:
 
 static void __exit exit_example(void)
 {
+	del_timer(&my_timer);
 	gpio_setPin(gpio, GPIO(1), 4, 0);
 	iounmap(gpio);
 	iounmap(iomux);
