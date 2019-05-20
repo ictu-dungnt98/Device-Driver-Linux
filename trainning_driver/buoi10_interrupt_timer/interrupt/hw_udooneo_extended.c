@@ -33,7 +33,7 @@ int gpio_init(unsigned int *gpio,
 
 		if (mode & INTERRUPT){
 			temp = read_reg(gpio_icr1, ~(INT_MASK << INT_PIN(pin)));
-			temp |= (IRQ_FALLING_EDGE << INT_PIN(pin));
+			temp |= (IRQ_LOW_LEVEL << INT_PIN(pin));
 			write_reg(gpio_icr1,temp);
 			pr_info("setting interrupt mode for GPIO%d_%d\n",port+1,pin);
 		}
