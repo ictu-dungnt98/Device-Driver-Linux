@@ -10,13 +10,13 @@ int gpio_init(unsigned int *gpio,
 	unsigned long temp = 0;
 	unsigned int *gpio_dr = NULL;
 	unsigned int *gpio_dir = NULL;
-	unsigned int *gpio_edge = NULL;
+	unsigned int *gpio_icr1 = NULL;
 	unsigned int *iomuxc_pin = NULL;
 
 	gpio += port;
 	gpio_dr = gpio + GPIO_DR;
 	gpio_dir = gpio + GPIO_GDIR;
-	gpio_edge = gpio + GPIO_EDGE_SEL;
+	gpio_icr1 = gpio + GPIO_ICR1;
 	iomuxc_pin = iomuxc + IOMUXC_GPIO1(pin);
 
 	/* setting gpio mode */
@@ -32,10 +32,10 @@ int gpio_init(unsigned int *gpio,
 		pr_info("setting input mode\n");
 
 		if (mode & INTERRUPT){
-			temp = read_reg(gpio_edge, ~(0x01 << pin));
-			temp |= (0x01 << pin);
-			write_reg(gpio_edge,temp);
-			pr_info("setting interrupt mode for GPIO_%d%d\n",port+1,pin);
+			temp = read_reg(gpio_icr1, ~(INT_MASK << INT_PIN(pin)));
+			temp |= (IRQ_FALLING_EDGE << INT_PIN(pin));
+			write_reg(gpio_icr1,temp);
+			pr_info("setting interrupt mode for GPIO%d_%d\n",port+1,pin);
 		}
 	} else if (mode & OUTPUT) {
 		temp = read_reg(gpio_dir, ~(0x01 << pin));

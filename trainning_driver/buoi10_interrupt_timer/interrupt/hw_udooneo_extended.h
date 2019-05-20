@@ -17,7 +17,7 @@
 #define GPIO_ICR1		3
 #define GPIO_ICR2		4
 #define GPIO_IMR		5
-#define GPIO_ISR		5
+#define GPIO_ISR		6
 #define GPIO_EDGE_SEL		7
 
 #define INT_PIN(x)		(((int)x) * 2)

@@ -1,2 +1,2 @@
 #!/bin/bash
-cd ./buoi10*/
+cd ./buoi11*/

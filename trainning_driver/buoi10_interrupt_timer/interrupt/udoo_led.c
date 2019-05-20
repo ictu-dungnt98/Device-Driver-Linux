@@ -131,7 +131,7 @@ static irqreturn_t irq_handler(int irq, void* dev)
 	int pin = 0;
 	int temp = 0;
 	unsigned int *gpio_isr = NULL;
-
+	disable_irq(irq);
 	pr_info("interrupt\n");
 
 	pin = gpio_getPin(gpio, GPIO(1), 4);
@@ -140,12 +140,9 @@ static irqreturn_t irq_handler(int irq, void* dev)
 	gpio_isr = gpio + GPIO(1);
 	gpio_isr += GPIO_ISR;
 	temp = read_reg(gpio_isr, 0x01 << 5);
-	if(temp)
-	{
-		pr_info("clear interrupt bit\n");
-		temp |= 0x01 << 5;
-		write_reg(gpio_isr, temp);
-	}
+	pr_info("clear interrupt bit\n");
+	temp  |= 0x01 << 5;
+	write_reg(gpio_isr, temp);
 
 	return IRQ_HANDLED;
 }

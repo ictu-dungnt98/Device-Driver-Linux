@@ -8,7 +8,7 @@ src-file := ./*.c
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 	sudo insmod $(module-name)
-#	clear
+	clear
 	dmesg
 clean:
 
