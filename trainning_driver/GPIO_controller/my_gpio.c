@@ -85,36 +85,8 @@ struct my_gpio_bank {
 	struct gpio_chip chip;
 	u32 mod_usage;
 	u32 irq_usage;
+	u32 pins;
 };
-
-static LIST_HEAD(omap_gpio_list);
-
-
-/***************** NEED FOR SYSTEM COMPILE *******************/
-#if IS_BUILTIN(CONFIG_GPIO_OMAP) /* be run when build source */
-void omap2_gpio_prepare_for_idle(int pwr_mode)
-{
-	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
-
-	struct my_gpio_bank *bank;
-
-	list_for_each_entry(bank, &omap_gpio_list, list_node) {
-		pm_runtime_put_sync_suspend(bank->chip.parent);
-	}
-}
-
-void omap2_gpio_resume_after_idle(void)
-{
-	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
-
-	struct my_gpio_bank *bank;
-
-	list_for_each_entry(bank, &omap_gpio_list, list_node) {
-		pm_runtime_get_sync(bank->chip.parent);
-	}
-}
-#endif
-/*************************************************************/
 
 static struct my_gpio_bank *to_my_gpio_bank(struct gpio_chip *chip)
 {
@@ -132,10 +104,12 @@ void __enable_modules(struct my_gpio_bank *bank, int is_enable)
 {
 	void __iomem *base = bank->base;
 
-	if(is_enable)
+	if(is_enable) {
 		iowrite32(0, base + bank->regs->ctrl); /* enable clock gate */
-	else
+	}
+	else {
 		iowrite32(1, base + bank->regs->ctrl); /* disable clock gate */
+	}
 }
 
 int __get_direction(struct my_gpio_bank *bank, int pin)
@@ -192,8 +166,6 @@ void __set_dataout(struct my_gpio_bank *bank, int pin, char data)
 	void __iomem *base = bank->base;
 	int temp_reg = ioread32(base + bank->regs->dataout);
 
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
-
 	if (data)
 		temp_reg |= 1 << pin;
 	else
@@ -207,8 +179,6 @@ void __my_enable_irq(struct my_gpio_bank *bank, int pin)
 	void __iomem *base = bank->base;
 	int temp_reg = ioread32(base + bank->regs->irq_status_set0);
 
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
-
 	temp_reg |= (1 << pin);
 	iowrite32(temp_reg, base + bank->regs->irq_status_set0);
 }
@@ -217,8 +187,6 @@ void __my_disable_irq (struct my_gpio_bank *bank, int pin)
 {
 	void __iomem *base = bank->base;
 	int temp_reg = ioread32(base + bank->regs->irq_status_clr0);
-
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
 
 	temp_reg |= (1 << pin);
 	iowrite32(temp_reg, base + bank->regs->irq_status_clr0);
@@ -229,8 +197,6 @@ void __clear_irq(struct my_gpio_bank *bank, int pin)
 	void __iomem *base = bank->base;
 	int temp_reg = ioread32(base + bank->regs->irq_status0);
 
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
-
 	temp_reg |= (1 << pin);
 	iowrite32(temp_reg, base + bank->regs->irq_status0);
 }
@@ -239,8 +205,6 @@ void __set_irq_mode (struct my_gpio_bank *bank, int pin, char detection)
 {
 	void __iomem *base = bank->base;
 	int temp_reg = 0;
-
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
 
 	switch (detection) {
 		case LEVELDETECT0:
@@ -289,22 +253,33 @@ void __set_debouncetime(struct my_gpio_bank *bank, int sec)
 int	my_gpio_request (struct gpio_chip *chip, unsigned pin)
 {
 	struct my_gpio_bank *bank = to_my_gpio_bank(chip);
-	int res = pinctrl_request_gpio(bank->chip.base + pin);
 
-	printk(KERN_EMERG "Dungnt98 stop pinctrl_request_gpio pin = %d %s %d\n", bank->chip.base + pin, __func__, __LINE__);
-	pm_runtime_get_sync(bank->chip.parent);
-	__enable_modules(bank, pin);
+	printk(KERN_EMERG "Dungnt98 pin = %d %s %d\n", bank->chip.base + pin, __func__, __LINE__);
 
-	dump_stack();
+	if (!(bank->pins)) {
+		pm_runtime_get_sync(bank->chip.parent);
+		__enable_modules(bank, 1);
+	}
+	bank->pins |= (1 << pin);
+
+//	return pinctrl_request_gpio(chip->base + gpio_pin);
 
 	return 0;
 }
 
 void my_gpio_free (struct gpio_chip *chip, unsigned pin)
 {
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
+	struct my_gpio_bank *bank = to_my_gpio_bank(chip);
+
+	printk(KERN_EMERG "Dungnt98 pin = %d %s %d\n", pin, __func__, __LINE__);
 
 	pinctrl_free_gpio(chip->base + pin);
+	bank->pins &= ~(1 << pin);
+
+	if (!(bank->pins)) {
+		pm_runtime_put(chip->parent);
+		__enable_modules(bank, 0);
+	}
 }
 
 int	my_gpio_get_direction (struct gpio_chip *chip, unsigned pin)
@@ -341,7 +316,7 @@ int	my_gpio_direction_output(struct gpio_chip *chip, unsigned pin, int value)
 {
 	struct my_gpio_bank *bank = to_my_gpio_bank(chip);
 
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
+	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
 
 	__set_direction(bank, pin, 0);
 	__set_dataout(bank, pin, value);
@@ -367,12 +342,6 @@ int my_gpio_get(struct gpio_chip *chip, unsigned pin)
 	return ret;
 }
 
-int my_gpio_get_multiple (struct gpio_chip *chip,unsigned long *mask, unsigned long *bits)
-{
-	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
-	return 0;
-}
-
 void my_gpio_set(struct gpio_chip *chip, unsigned pin, int value)
 {
 	struct my_gpio_bank *bank = to_my_gpio_bank(chip);
@@ -383,20 +352,15 @@ void my_gpio_set(struct gpio_chip *chip, unsigned pin, int value)
 	__set_dataout(bank, pin, value);
 }
 
-void my_gpio_set_multiple (struct gpio_chip *chip,unsigned long *mask, unsigned long *bits)
-{
-	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
-}
-
 int my_gpio_set_config (struct gpio_chip *chip,unsigned pin, unsigned long config)
 {
-	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
-	return 0;
-}
+	struct my_gpio_bank *bank = to_my_gpio_bank(chip);
 
-int my_gpio_to_irq (struct gpio_chip *chip, unsigned pin)
-{
 	printk(KERN_EMERG "Dungnt98 gpio = %d, %s %d\n", pin, __func__, __LINE__);
+
+	__set_direction(bank, pin, 0);
+	__set_dataout(bank, pin, 1);
+
 	return 0;
 }
 /*------------------------------------------------------------*
@@ -409,58 +373,128 @@ static irqreturn_t my_irq_handler(int irq, void *gpiobank)
 	pm_runtime_get_sync(bank->chip.parent);
 
 	/* Do something here */
-	printk(KERN_EMERG "myDungnt98 %s %d\n", __func__, __LINE__);
 
 	pm_runtime_put(bank->chip.parent);
 
 	return IRQ_HANDLED;
 }
-
+/**
+ * my_irq_startup() - start up interrupt ( default to -> enable if NULL )
+ * - enable irq
+ */
 static unsigned int my_irq_startup(struct irq_data *d)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
+
+	__my_enable_irq(bank, offset);
+
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
+
 	 return 0;
 }
-
+/**
+ * my_irq_shutdown() - shut down the interrupt ( default to -> disable if NULL )
+ * - clear irq flag
+ * - disable irq
+ */
 static void my_irq_shutdown(struct irq_data *d)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
+
+	__clear_irq(bank, offset);
+	__my_disable_irq(bank, offset);
+
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
 }
-
+/**
+ * my_ack_irq() - start of a new interrupt
+ * - clear as soon as possible when new interrupt rising
+ * - Linux calls this function as soon as an interrupt is raised, far before it is serviced.
+ * Some implementations map this function to chip->disable(), so that another
+ *    interrupt request on the line will not cause another interrupt until after the
+ *    current interrupt request has been serviced.
+ */
 static void my_ack_irq(struct irq_data *d)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
+
+	__clear_irq(bank, offset);
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
+	
 }
 
 static void my_mask_irq(struct irq_data *d)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
+
+	
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
+	
 }
 
 static void my_unmask_irq(struct irq_data *d)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
+
+
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
 }
-
+/**
+ * my_irq_type() - This sets the type detection of an IRQ.
+ */
 static int my_irq_type(struct irq_data *d, unsigned type)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
+	
 	return 0;
 }
 
+/** 
+ * my_gpio_wake_enable() - This enables/disables power-management wake-on of an IRQ
+ */
 static int my_gpio_wake_enable(struct irq_data *d, unsigned int enable)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
+
 	return 0;
 }
-
-static void my_irq_bus_lock(struct irq_data *data)
+/**
+ * my_irq_bus_lock() - This functions to lock access to slow bus (I2C) chips. Locking a
+ *    mutex here is sufficient.
+ */
+static void my_irq_bus_lock(struct irq_data *d)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
+	
 }
-
-static void my_irq_bus_sync_unlock(struct irq_data *data)
+/**
+ * my_irq_bus_sync_unlock() - This functions to sync and unlock slow bus (I2C) chips.
+ *    Unlock the mutex previously locked.
+ */
+static void my_irq_bus_sync_unlock(struct irq_data *d)
 {
+	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	struct my_gpio_bank *bank = gpiochip_get_data(chip);
+	unsigned offset = d->hwirq;
 	printk(KERN_EMERG "Dungnt98 %s %d\n", __func__, __LINE__);
 }
 
@@ -468,7 +502,7 @@ static void my_irq_bus_sync_unlock(struct irq_data *data)
 
 static int init_gpio_chip(struct platform_device *pdev, struct irq_chip *irqc)
 {
-	static int gpio = 64;
+	static int gpio = 32;
 	int ret = 0;
 	int irq_base = 0;
 	struct resource *res;
@@ -526,13 +560,13 @@ static int init_gpio_chip(struct platform_device *pdev, struct irq_chip *irqc)
 
 	/* auto register chip->to_irq api */
 	ret = gpiochip_irqchip_add(&bank->chip, irqc, irq_base, handle_bad_irq, IRQ_TYPE_NONE);
-	if (ret) { /* FALSE */
+	if (ret) {
 		dev_err(bank->chip.parent, "Couldn't add irqchip to gpiochip %d\n", ret);
 		gpiochip_remove(&bank->chip);
 		return -ENODEV;
 	}
 
-	gpiochip_set_chained_irqchip(&bank->chip, irqc, bank->irq, NULL);
+	// gpiochip_set_chained_irqchip(&bank->chip, irqc, bank->irq, NULL);
 
 	/* request irq */
 	ret = devm_request_irq(bank->chip.parent, bank->irq,
@@ -549,7 +583,7 @@ static const struct of_device_id my_of_match[];
 
 static int my_gpio_probe (struct platform_device *pdev)
 {
-	printk(KERN_EMERG "\n++++ Dungnt98 %s %d ++++\n\n", __func__, __LINE__);
+	printk(KERN_EMERG "\n++++ Dungnt98 %s %d ++++\n", __func__, __LINE__);
 
 	int ret = 0;
 	struct device *dev = &pdev->dev;
@@ -604,8 +638,6 @@ static int my_gpio_probe (struct platform_device *pdev)
 		return ret;
 	}
 
-	list_add_tail(&bank->list_node, &omap_gpio_list);
-
 	pm_runtime_put(bank->chip.parent);
 
 	return 0;
@@ -618,7 +650,7 @@ static int my_gpio_remove (struct platform_device *pdev)
 	struct my_gpio_bank *bank = platform_get_drvdata(pdev);
 
 	gpiochip_remove(&bank->chip);
-	list_del(&bank->list_node);
+
 	pm_runtime_disable(&pdev->dev);
 
 	return 0;
