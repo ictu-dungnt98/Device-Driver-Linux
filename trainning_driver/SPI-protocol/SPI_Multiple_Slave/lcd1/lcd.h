@@ -6,8 +6,6 @@
 #include <linux/delay.h>
 #include <linux/spi/spi.h>
 
-#define LCD_DC_PIN			117
-#define LCD_RST_PIN		115
 
 #define LCD_WIDTH			84
 #define LCD_HEIGHT			48
@@ -39,6 +37,16 @@
 
 #define LCD_BUFFER_SIZE			(LCD_WIDTH * LCD_HEIGHT / 8)
 
+
+struct nokia_5110 {
+	struct spi_device *spi;
+	dev_t dev_number;
+	struct cdev c_dev;
+	struct device *device_p;
+	struct list_head	device_entry;
+	int lcd_dc;
+	int lcd_rs;
+};
 
 typedef unsigned char			unit8_t;
 
@@ -78,24 +86,24 @@ typedef enum {
 } LCD_Invert_t;
 
 void gpio_set_pin(int gpio, Pin_State_t state);
-int LCD_init_IO(void);
-void LCD_free_IO(void);
-void LCD_Init(struct spi_device *spidev, unsigned char contrast);
+int LCD_init_IO(struct nokia_5110 *lcd);
+void LCD_free_IO(struct nokia_5110 *lcd);
+void LCD_Init(struct nokia_5110 *lcd, unsigned char contrast);
 
-void LCD_Pin(LCD_Pin_t pin, LCD_State_t state);
+void LCD_Pin(struct nokia_5110 *lcd, LCD_Pin_t pin, LCD_State_t state);
 void LCD_send(struct spi_device *spidev, unsigned char data);
-void LCD_Write(struct spi_device *spidev, LCD_WriteType_t type, unsigned char data);
-void LCD_Home(struct spi_device *spidev);
-void LCD_SetContrast(struct spi_device *spidev, unsigned char contrast);
-void LCD_GotoXY(struct spi_device *spidev, unsigned char x, unsigned char y);
+void LCD_Write(struct nokia_5110 *lcd, LCD_WriteType_t type, unsigned char data);
+void LCD_Home(struct nokia_5110 *lcd);
+void LCD_SetContrast(struct nokia_5110 *lcd, unsigned char contrast);
+void LCD_GotoXY(struct nokia_5110 *lcd, unsigned char x, unsigned char y);
 
 void LCD_UpdateArea(unsigned char xMin, unsigned char yMin, unsigned char xMax,
 			unsigned char yMax);
-void LCD_Refresh(struct spi_device *spidev);
-void LCD_Clear(struct spi_device *spidev);
+void LCD_Refresh(struct nokia_5110 *lcd);
+void LCD_Clear(struct nokia_5110 *lcd);
 
 void LCD_DrawPixel(unsigned char x, unsigned char y, LCD_Pixel_t pixel);
-void LCD_Invert(struct spi_device *spidev, LCD_Invert_t invert);
+void LCD_Invert(struct nokia_5110 *lcd, LCD_Invert_t invert);
 void LCD_Putc(char c, LCD_Pixel_t color, LCD_FontSize_t size);
 void LCD_Puts(char *s, LCD_Pixel_t color, LCD_FontSize_t size);
 

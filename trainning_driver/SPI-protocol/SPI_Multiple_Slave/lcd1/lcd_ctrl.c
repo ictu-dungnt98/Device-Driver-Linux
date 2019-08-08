@@ -18,19 +18,12 @@
 #include <linux/delay.h>
 #include <linux/spi/spi.h>
 #include <linux/string.h>
+#include <linux/of_gpio.h>
 
 #include "lcd.h"
 #include "lcd_ioctl.h"
 
 #define MAX_SLAVE	2
-
-struct nokia_5110 {
-	struct spi_device *spi;
-	dev_t dev_number;
-	struct cdev c_dev;
-	struct device *device_p;
-	struct list_head	device_entry;
-};
 
 static LIST_HEAD(device_list);
 
@@ -87,18 +80,21 @@ static int nokia5110_write(struct file *filep, const char __user *buf,
 	int ret;
 	Draw_String_t *str = NULL;
 
+	pr_emerg("%s: lcd-dc: %d\n", __func__, lcd->lcd_dc);
+	pr_emerg("%s: lcd-rs: %d\n", __func__, lcd->lcd_rs);
+
 	str = kzalloc(sizeof(Draw_String_t), GFP_KERNEL );
 
-	ret = copy_from_user(str->message, buf, sizeof(Draw_String_t));
+	ret = copy_from_user(str, buf, sizeof(Draw_String_t));
 	if (ret) {
 		pr_err("can not copy from user\n");
 		return -ENOMSG;
 	}
-	pr_info("\n%s\n", str->message);
+	pr_info("\nUser send: %s\n", str->message);
 
 	LCD_Puts(str->message, str->pixel, str->font);
 
-	LCD_Refresh(lcd->spi);
+	LCD_Refresh(lcd);
 
 	return len;
 }
@@ -119,26 +115,26 @@ static long nokia5110_ioctl(struct file* filep, unsigned int cmd,
 
 	switch (cmd) {
 	case IOCTL_SEND_BUFF:
-			LCD_Refresh(lcd->spi);
+			LCD_Refresh(lcd);
 			break;
 
 	case IOCTL_CLEAR:
-			LCD_Clear(lcd->spi);
+			LCD_Clear(lcd);
 			break;
 
 	case IOCTL_HOME:
-			LCD_Home(lcd->spi);
+			LCD_Home(lcd);
 			break;
 
 	case IOCTL_SET_CONTRAST:
 			get_user(contrast, value);
-			LCD_SetContrast(lcd->spi, contrast);
+			LCD_SetContrast(lcd, contrast);
 			break;
 
 	case IOCTL_GOTOXY:
 			pos = kmalloc(sizeof(Position_t), GFP_KERNEL);
 			ret = copy_from_user(pos, argp, sizeof(Position_t));
-			LCD_GotoXY(lcd->spi, pos->x, pos->y);
+			LCD_GotoXY(lcd, pos->x, pos->y);
 			break;
 
 	case IOCTL_DRAW_PIXEL:
@@ -200,6 +196,7 @@ static int my_probe(struct spi_device *spi)
 	int major = MAJOR(dev_num);
 	int minor = spi->chip_select;
 	struct nokia_5110 *lcd = NULL;
+	struct device_node *np = spi->dev.of_node;
 
 /******************* SPI Device Driver ****************/
 	lcd = kzalloc(sizeof(*lcd), GFP_KERNEL);
@@ -207,13 +204,20 @@ static int my_probe(struct spi_device *spi)
 		goto lcd_aloccate_failed;
 
 	lcd->spi = spi;
+	lcd->lcd_dc = of_get_named_gpio(np, "lcd-dc", 0);
+	lcd->lcd_rs = of_get_named_gpio(np, "lcd-rs", 0);
+
 	spi_set_drvdata(spi, lcd);
 
-	//res = spi_setup(lcd->spi);
+	pr_emerg("%s: lcd-dc: %d\n", __func__, lcd->lcd_dc);
+	pr_emerg("%s: lcd-rs: %d\n", __func__, lcd->lcd_rs);
+
+	/*
+	res = spi_setup(lcd->spi);
 	pr_info("Dungnt98 chip_select = %d \n", spi->chip_select);
 	pr_info("Dungnt98 clock = %d \n", spi->max_speed_hz);
 	pr_info("Dungnt98 cs = %d \n", spi->cs_gpio);
-
+	*/
 /***************** Create Device File ***************/
 	lcd->dev_number = MKDEV(major, minor);
 	lcd->device_p = device_create(class_p,
@@ -237,7 +241,7 @@ static int my_probe(struct spi_device *spi)
 	INIT_LIST_HEAD(&lcd->device_entry);
 	list_add(&lcd->device_entry, &device_list);
 
-	LCD_Init(lcd->spi, 0x38);
+	LCD_Init(lcd, 0x38);
 	pr_info("LCD Init successfully\n");
 	return 0;
 
@@ -259,12 +263,16 @@ static int my_remove(struct spi_device *spi)
 	device_destroy(class_p, lcd->dev_number);
 	unregister_chrdev_region(lcd->dev_number, 1);
 
-	LCD_Clear(lcd->spi);
-	LCD_free_IO();
+	LCD_Clear(lcd);
+	LCD_free_IO(lcd);
 
 	kfree(lcd);
 
 	pr_emerg("Dungnt98 %s, %d\n", __func__, __LINE__);
+	pr_emerg("Dungnt98 cs-gpio: %d\n", spi->cs_gpio);
+	pr_emerg("Dungnt98 chip_select: %d\n", spi->chip_select);
+	pr_emerg("Dungnt98 lcd_dc: %d\n", lcd->lcd_dc);
+	pr_emerg("Dungnt98 lcd_rs: %d\n", lcd->lcd_rs);
 
 	return 0;
 }

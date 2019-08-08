@@ -8,7 +8,8 @@
 
 #include "../lcd1/lcd_ioctl.h"
 
-#define FILENAME		"/dev/lcd_0"
+
+#define FILENAME 	"/dev/lcd_1"
 
 extern void draw_string(char *str, Pixel_t color, FontSize_t font);
 extern int open_file();

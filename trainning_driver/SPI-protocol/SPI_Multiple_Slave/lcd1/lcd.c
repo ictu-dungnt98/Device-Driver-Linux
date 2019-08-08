@@ -237,21 +237,21 @@ void gpio_set_pin(int gpio, Pin_State_t state)
 	gpio_set_value(gpio, state);
 }
 
-void LCD_Pin(LCD_Pin_t pin, LCD_State_t state)
+void LCD_Pin(struct nokia_5110 *lcd, LCD_Pin_t pin, LCD_State_t state)
 {
 	switch (pin) {
 	case LCD_Pin_DC:
 		if (state != LCD_State_Low) {
-			gpio_set_pin(LCD_DC_PIN, PIN_HIGH);
+			gpio_set_pin(lcd->lcd_dc, PIN_HIGH);
 		} else {
-			gpio_set_pin(LCD_DC_PIN, PIN_LOW);
+			gpio_set_pin(lcd->lcd_dc, PIN_LOW);
 		}
 		break;
 	case LCD_Pin_RST:
 		if (state != LCD_State_Low) {
-			gpio_set_pin(LCD_RST_PIN, PIN_HIGH);
+			gpio_set_pin(lcd->lcd_rs, PIN_HIGH);
 		} else {
-			gpio_set_pin(LCD_RST_PIN, PIN_LOW);
+			gpio_set_pin(lcd->lcd_rs, PIN_LOW);
 		}
 		break;
 	default: break;
@@ -263,139 +263,139 @@ void LCD_send(struct spi_device *spidev, unsigned char data)
 	spi_write(spidev, &data, sizeof(data));
 }
 
-void LCD_Write(struct spi_device *spidev, LCD_WriteType_t type, unsigned char data)
+void LCD_Write(struct nokia_5110 *lcd, LCD_WriteType_t type, unsigned char data)
 {
 	switch (type) {
 	case LCD_DATA:
-		LCD_Pin(LCD_Pin_DC, LCD_State_High);
+		LCD_Pin(lcd, LCD_Pin_DC, LCD_State_High);
 		break;
 	case LCD_COMMAND:
-		LCD_Pin(LCD_Pin_DC, LCD_State_Low);
+		LCD_Pin(lcd, LCD_Pin_DC, LCD_State_Low);
 		break;
 	default: break;
 	}
 
-	LCD_send(spidev, data);
+	LCD_send(lcd->spi, data);
 }
 
-int LCD_init_IO(void)
+int LCD_init_IO(struct nokia_5110 *lcd)
 {
 	int ret = 0;
 	/* Init gpio pin */
-	if (!gpio_is_valid(LCD_DC_PIN)) {
-		pr_err("gpio pin %d is not avaiable\n", LCD_DC_PIN);
+	if (!gpio_is_valid(lcd->lcd_dc)) {
+		pr_err("gpio pin %d is not avaiable\n", lcd->lcd_dc);
 		return -ENODEV;
 	}
 
-	ret = gpio_request(LCD_DC_PIN, "RST pin");
+	ret = gpio_request(lcd->lcd_dc, "RST pin");
 	if (ret) {
-		pr_err("Can not request gpio pin %d\n", LCD_DC_PIN);
+		pr_err("Can not request gpio pin %d\n", lcd->lcd_dc);
 		return ret;
 	}
 
-	if (!gpio_is_valid(LCD_RST_PIN)) {
-		pr_err("gpio pin %d is not avaiable\n", LCD_RST_PIN);
+	if (!gpio_is_valid(lcd->lcd_rs)) {
+		pr_err("gpio pin %d is not avaiable\n", lcd->lcd_rs);
 		return -ENODEV;
 	}
 
-	ret = gpio_request(LCD_RST_PIN, "RST pin");
+	ret = gpio_request(lcd->lcd_rs, "RST pin");
 	if (ret) {
-		pr_err("Can not request gpio pin %d\n", LCD_RST_PIN);
+		pr_err("Can not request gpio pin %d\n", lcd->lcd_rs);
 		return ret;
 	}
 
 	/* Reset pin High */
-	LCD_Pin(LCD_Pin_RST, LCD_State_High);
+	LCD_Pin(lcd, LCD_Pin_RST, LCD_State_High);
 
 	return ret;
 }
 
-void LCD_free_IO(void)
+void LCD_free_IO(struct nokia_5110 *lcd)
 {
-	gpio_free(LCD_RST_PIN);
-	gpio_free(LCD_DC_PIN);
+	gpio_free(lcd->lcd_rs);
+	gpio_free(lcd->lcd_dc);
 }
 
-void LCD_Init(struct spi_device *spidev, unsigned char contrast)
+void LCD_Init(struct nokia_5110 *lcd, unsigned char contrast)
 {
-	LCD_init_IO();
+	LCD_init_IO(lcd);
 
 	/*Reset*/
-	LCD_Pin(LCD_Pin_RST, LCD_State_Low);
+	LCD_Pin(lcd, LCD_Pin_RST, LCD_State_Low);
 	msleep(10);
-	LCD_Pin(LCD_Pin_RST, LCD_State_High);
+	LCD_Pin(lcd, LCD_Pin_RST, LCD_State_High);
 
 	/*Go in extended mode*/
-	LCD_Write(spidev, LCD_COMMAND, LCD_FUNCTIONSET | LCD_EXTENDEDINSTRUCTION);
+	LCD_Write(lcd, LCD_COMMAND, LCD_FUNCTIONSET | LCD_EXTENDEDINSTRUCTION);
 
 	/*LCD bias select*/
-	LCD_Write(spidev, LCD_COMMAND, LCD_SETBIAS | 0x4);
+	LCD_Write(lcd, LCD_COMMAND, LCD_SETBIAS | 0x4);
 
 	/*set VOP*/
 	if (contrast > 0x7F)
 		contrast = 0x7F;
-	LCD_Write(spidev, LCD_COMMAND, LCD_SETVOP | contrast);
+	LCD_Write(lcd, LCD_COMMAND, LCD_SETVOP | contrast);
 
 	/*normal mode*/
-	LCD_Write(spidev, LCD_COMMAND, LCD_FUNCTIONSET);
+	LCD_Write(lcd, LCD_COMMAND, LCD_FUNCTIONSET);
 
 	/*Set display to Normal*/
-	LCD_Write(spidev, LCD_COMMAND, LCD_DISPLAYINVERTED | LCD_DISPLAYCONTROL);
+	LCD_Write(lcd, LCD_COMMAND, LCD_DISPLAYNORMAL | LCD_DISPLAYCONTROL);
 
 	/*Set cursor to home position*/
-	LCD_Home(spidev);
+	LCD_Home(lcd);
 
 	/*Normal display*/
-	LCD_Write(spidev, LCD_COMMAND, LCD_DISPLAYCONTROL | LCD_DISPLAYINVERTED);
+	LCD_Write(lcd, LCD_COMMAND, LCD_DISPLAYCONTROL | LCD_DISPLAYNORMAL);
 
 	/*Clear display*/
-	LCD_Clear(spidev);
+	LCD_Clear(lcd);
 }
 
-void LCD_Home(struct spi_device *spidev)
+void LCD_Home(struct nokia_5110 *lcd)
 {
-	LCD_Write(spidev, LCD_COMMAND, LCD_SETXADDR | 0);
-	LCD_Write(spidev, LCD_COMMAND, LCD_SETYADDR | 0);
+	LCD_Write(lcd, LCD_COMMAND, LCD_SETXADDR | 0);
+	LCD_Write(lcd, LCD_COMMAND, LCD_SETYADDR | 0);
 }
 
-void LCD_GotoXY(struct spi_device *spidev, unsigned char x, unsigned char y)
+void LCD_GotoXY(struct nokia_5110 *lcd, unsigned char x, unsigned char y)
 {
-	LCD_Write(spidev, LCD_COMMAND, LCD_SETYADDR|(y&0x07));
-	LCD_Write(spidev, LCD_COMMAND, LCD_SETXADDR|(x&0x7f));
+	LCD_x = x;
+	LCD_y = y;
 }
 
-void LCD_Clear(struct spi_device *spidev)
+void LCD_Clear(struct nokia_5110 *lcd)
 {
 	int pixel = 0;
 	for (pixel=504;pixel>0;pixel--) {
-		LCD_Write(spidev, LCD_DATA, 0x00);
+		LCD_Write(lcd, LCD_DATA, 0x00);
 	}
 }
 
-void LCD_Invert(struct spi_device *spidev, LCD_Invert_t invert)
+void LCD_Invert(struct nokia_5110 *lcd, LCD_Invert_t invert)
 {
 	if (invert != LCD_Invert_No)
-		LCD_Write(spidev, LCD_COMMAND, LCD_DISPLAYCONTROL | LCD_DISPLAYINVERTED);
+		LCD_Write(lcd, LCD_COMMAND, LCD_DISPLAYCONTROL | LCD_DISPLAYINVERTED);
 	else
-		LCD_Write(spidev, LCD_COMMAND, LCD_DISPLAYCONTROL | LCD_DISPLAYNORMAL);
+		LCD_Write(lcd, LCD_COMMAND, LCD_DISPLAYCONTROL | LCD_DISPLAYNORMAL);
 }
 
-void LCD_SetContrast(struct spi_device *spidev, unsigned char contrast)
+void LCD_SetContrast(struct nokia_5110 *lcd, unsigned char contrast)
 {
 	/*Go in extended mode*/
-	LCD_Write(spidev, LCD_COMMAND, LCD_FUNCTIONSET | LCD_EXTENDEDINSTRUCTION);
+	LCD_Write(lcd, LCD_COMMAND, LCD_FUNCTIONSET | LCD_EXTENDEDINSTRUCTION);
 
 	/*set VOP*/
 	if (contrast > 0x7F)
 		contrast = 0x7F;
 
-	LCD_Write(spidev, LCD_COMMAND, LCD_SETVOP | contrast);
+	LCD_Write(lcd, LCD_COMMAND, LCD_SETVOP | contrast);
 
 	/*normal mode*/
-	LCD_Write(spidev, LCD_COMMAND, LCD_FUNCTIONSET);
+	LCD_Write(lcd, LCD_COMMAND, LCD_FUNCTIONSET);
 }
 
-void LCD_Refresh(struct spi_device *spidev)
+void LCD_Refresh(struct nokia_5110 *lcd)
 {
 	unsigned char i, j;
 
@@ -405,11 +405,11 @@ void LCD_Refresh(struct spi_device *spidev)
 		if ((i * 8) > LCD_UpdateYmax)
 			break;
 
-		LCD_Write(spidev, LCD_COMMAND, LCD_SETYADDR | i);
-		LCD_Write(spidev, LCD_COMMAND, LCD_SETXADDR | LCD_UpdateXmin);
+		LCD_Write(lcd, LCD_COMMAND, LCD_SETYADDR | i);
+		LCD_Write(lcd, LCD_COMMAND, LCD_SETXADDR | LCD_UpdateXmin);
 
 		for (j = LCD_UpdateXmin; j <= LCD_UpdateXmax; j++) {
-			LCD_Write(spidev, LCD_DATA, LCD_Buffer[i * LCD_WIDTH + j]);
+			LCD_Write(lcd, LCD_DATA, LCD_Buffer[i * LCD_WIDTH + j]);
 		}
 	}
 
