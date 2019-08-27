@@ -1,0 +1,48 @@
+Driver communicate ZynQ 7000 to TMS320C5509A
+Agenda
+	Analysis of the problem
+	Solution
+
+Analysis of the problem
+	Requirement ?
+	Objects ?
+Requirement
+	Driver communicate ZynQ 7000 to DSP TMS320C5509A
+	Use McBSP port
+Objects
+	How about ZynQ 7000 ?
+	How about DSP TMS320C5509A?
+	What's McBSP?
+
+How about ZynQ 7000 ?
+	Is the SoC integrate of ARM and FPGA
+	Can use with Linux and Free RTOS
+	2 x UART
+	2 x CAN 2.0B
+	2 x I2C
+	2 x SPI
+	4 x GPIO
+How about DSP TMS320C5509A?
+	Is the DSP
+	Manufactured by TI
+	Up to 3 Multichannel Buffered Serial Ports (McBSPs) 
+What's McBSP?
+	Mulitichannel Buffered Serial Port
+	Standard protocol
+	The primary use for the McBSP is for audio interface purposes
+	The McBSP consists of a data path and a control path that connect to external devices.
+	Separate pins for transmission and reception communicate data to these external devices.
+McBSP signals
+		clock transmit - CLKX
+		clock receive- CLKR
+		frame sync transmit - FSX
+		frame sync receive - FSR
+		Data transmit - DX
+		Data receive - DR
+How to comminicate between both devices?
+		Mcbsp connect with spi
+McBSP as SPI Slave
+McBSP as SPI Master
+Solution
+	McBSP as SPI Slave
+	Target: Write SPI driver on ZynQ to communicate with DSP

@@ -1,0 +1,74 @@
+SPI Driver on Linux
+Agenda
+	Introduction to SPI
+	SPI concepts on Linux
+	Demo SPI protocol driver with LCD Nokia 5110
+Introduction to SPI
+	What's SPI?
+	Common uses of SPI
+	SPI signals 
+	SPI Modes 
+
+What's SPI?
+	Serial Peripheral Interface 
+	4 wires signals
+	Motorola design
+	Master - Slave
+	no maximum clock speed
+Common uses of SPI
+	Flash memory
+	ADCs
+	LCD controllers
+	Sensors
+SPI signals 
+SPI Modes 
+
+SPI concepts on Linux
+	SPI protocol driver
+	SPI controller driver
+	spidev
+
+SPIDEV
+	Idea
+		Simplest for development and test
+	Enable spidev
+	drivers/spi/spidev.c
+
+SPI protocol driver
+	Idea: Support functions with special device
+	struct spi_driver
+	spi.h
+Implement
+	Device tree SPI child node
+	Instance of SPI device and corresponding APIs
+Device tree SPI child node
+Instance of SPI device
+	struct spi_device
+	spi_device_id
+	of_device_id
+APIs use for SPI protocol driver
+	#include <linux/spi.h>
+	spi_setup()
+	spi_write()
+	spi_read()
+	spi_w8r8 - SPI synchronous 8 bit write followed by 8 bit read
+	spi_w8r16 - SPI synchronous 8 bit write followed by 16 bit read
+
+SPI Controller
+	Idea: Configuration registers of SPI module
+	struct platform_driver
+Implement
+	Device tree SPI node
+	Instance of SPI device and corresponding APIs
+Device tree
+Instance of SPI driver
+	struct spi_master
+	struct spi_controller
+APIs
+	spi_alloc_master()
+	omap2_mcspi_master_setup()
+	spi_master_put()
+	spi_register_master - register SPI master controller
+	spi_unregister_controller() - unregister SPI master or slave controller
+
+Demo SPI protocol driver with LCD Nokia 5110
