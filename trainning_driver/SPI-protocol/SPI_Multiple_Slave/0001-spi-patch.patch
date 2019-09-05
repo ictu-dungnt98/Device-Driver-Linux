@@ -1,0 +1,69 @@
+From ec8602c9f785dc56e4df9f2e27866d0a1ce531da Mon Sep 17 00:00:00 2001
+From: TrongDungEmb98 <ntdungembedded98@gmail.com>
+Date: Thu, 5 Sep 2019 10:43:21 +0700
+Subject: [PATCH] spi-patch
+
+
+diff --git a/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi b/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
+index bff7f8dae839..783f795f2e0a 100644
+--- a/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
+@@ -18,7 +18,7 @@
+ 			0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+ 			0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+ 			0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
+-			// 0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */		>;
++			0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */		>;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 7bcf13bad47d..1bfc989eec11 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -7,6 +7,7 @@
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
+ #include "am335x-boneblack-common.dtsi"
++#include "am335x-bone-pinmux-spi1.dtsi"
+ /* #include "am335x-bone-jtag.dtsi" */
+ 
+ / {
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index af54fe3796f5..2443c2113e9f 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -749,6 +749,7 @@
+ 			reg = <0x481a0000 0x400>;
+ 			interrupts = <125>;
+ 			ti,spi-num-cs = <2>;
++			cs-gpios = <&gpio3 17 1>, <&gpio0 7 1>;
+ 			ti,hwmods = "spi1";
+ 			dmas = <&edma 42 0
+ 				&edma 43 0
+@@ -756,6 +757,22 @@
+ 				&edma 45 0>;
+ 			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 			status = "disabled";
++
++			slave0: lcd0 {
++				compatible = "dungnt98,spi1";
++				reg = <0>;
++				spi-max-frequency = <10000000>;
++				lcd-dc = <&gpio3 19 1>;
++				lcd-rs = <&gpio3 21 1>;
++			};
++
++			slave1: lcd1 {
++				compatible = "dungnt98,spi2";
++				reg = <1>;
++				spi-max-frequency = <10000000>;
++				lcd-dc = <&gpio3 19 1>;
++				lcd-rs = <&gpio3 21 1>;
++			};
+ 		};
+ 
+ 		usb: usb@47400000 {
+-- 
+2.17.1
+

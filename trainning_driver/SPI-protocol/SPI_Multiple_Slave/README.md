@@ -5,37 +5,10 @@
 -------------------------------------------------------------------------------------------------------------------------------------
 Do following step to use this source code:
 
-1. Modify spi1 node in device tree file : linux/arch/arm/boot/dts/am33xx.dtsi
+1. Modify spi1 node in device tree file : 
+	use 0001-spi-patch.patch file with to modify device tree by command:
+		patch -p1 < ..(path-directoriy)/0001-spi-patch.patch
 
-	spi1: spi@481a0000 {
-		compatible = "ti,omap4-mcspi";
-                #address-cells = <1>;
-                #size-cells = <0>;
-                reg = <0x481a0000 0x400>;
-                interrupts = <125>;
-                ti,spi-num-cs = <2>;
-                ti,hwmods = "spi1";
-		cs-gpios = <&gpio3 17 1>, <&gpio0 7 1>;
-                dmas = <&edma 42 0
-     		        &edma 43 0
-                	&edma 44 0
-                        &edma 45 0>;
-                dma-names = "tx0", "rx0", "tx1", "rx1";
-                status = "disabled";
-
-		lcd0:lcd0@0 {
-			reg = <0>;
-			spi-max-frequency = <10000000>;
-			compatible = "dungnt98,spi1";
-		};
-
-		lcd1:lcd1@1 {
-			reg = <1>;
-			spi-max-frequency = <10000000>;
-			compatible = "dungnt98,spi2";
-		};
-        };
-	
 2. Re-build kernel and coppy file linux/arch/arm/boot/dts/am335x-boneblack.dtb to BOOT partition of sd-card.
 3. Modify path of kernel and toolchain in Makefile file then run following command to build driver:
 	make clean all
