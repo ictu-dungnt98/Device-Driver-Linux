@@ -1,0 +1,6 @@
+GCC := /home/dungnt98/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+
+all:
+	sudo make ARCH=arm CROSS_COMPILE=$(GCC) uImage dtbs LOADADDR=0x80008000 -j4
+config-build:
+	sudo make ARCH=arm CROSS_COMPILE=$(GCC) bb.org_defconfig

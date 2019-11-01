@@ -1,0 +1,1 @@
+cmd_/home/dungnt98/gpio/led_dts.ko := /home/dungnt98/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -T ./arch/arm/kernel/module.lds -o /home/dungnt98/gpio/led_dts.ko /home/dungnt98/gpio/led_dts.o /home/dungnt98/gpio/led_dts.mod.o ;  true
