@@ -18,24 +18,12 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
-static int dev_open(
-	const struct inode *,
-	const struct file *);
-static int dev_close(
-	const struct inode *,
-	const struct file *);
-static ssize_t dev_read(
-	const struct file *,
-	char __user *,
+static int dev_open(const struct inode*, const struct file*);
+static int dev_close(const struct inode*, const struct file*);
+static ssize_t dev_read(const struct file*, char __user*, size_t, loff_t*);
+static ssize_t dev_write(const struct file *, const char __user *,
 	size_t, loff_t *);
-static ssize_t dev_write(
-	const struct file *,
-	const char __user *,
-	size_t, loff_t *);
-static long dev_ioctl(
-	const struct file *fd,
-	unsigned int cmd,
-	unsigned long arg);
+static long dev_ioctl(const struct file*, unsigned int cmd, unsigned long arg);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("TRONG DUNG");
