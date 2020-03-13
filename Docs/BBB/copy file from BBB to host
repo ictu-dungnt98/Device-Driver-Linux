@@ -1,0 +1,11 @@
+/* You are working on Host and you want to */
+
+/* from BBB to host */
+scp -r debian@192.168.7.2:~/* ~/
+
+/* from host to BBB */
+scp -r ./* debian@192.168.7.2:~/
+
+
+/* If you want to ssh from host to BBB, run: */
+ssh debian@192.168.7.2
