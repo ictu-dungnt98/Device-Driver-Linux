@@ -1,12 +1,9 @@
-app-file := udoo_led.c
+obj-m := led_drv.o
+app-file := app
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-	gcc $(file).c -o $(file)
+	gcc $(app-file).c -o $(app-file)
 clean
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-	rm $(file)
-
-check:
-	././checkpatch.pl --no-tree -f $(src-file)
-
+	rm $(app-file)

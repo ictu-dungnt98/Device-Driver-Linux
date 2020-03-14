@@ -75,6 +75,8 @@ static int dev_open(struct inode *inodep, struct file *filep)
     }
     iowrite32(~(1 << LED), (io + GPIO_OE));
 
+    iounmap(io);
+
     pr_info("Open device file\n");
     return 0;
 }
@@ -102,21 +104,32 @@ static ssize_t dev_read(struct file *filep, char __user *buf,
 
     io = ioremap(GPIO2_BASE_START, GPIO2_BASE_STOP - GPIO2_BASE_START);
     if (io == NULL)
-	    return -EFAULT;
+        goto ioremap_fail;
 
     temp = ioread32(io + GPIO_SETDATAOUT);
     if (temp == 0) {
         temp = copy_to_user(buf, "1", 1);
+		if(temp != 0) {
+            pr_err("can't coppy to user \n");    
+            goto send_data_fail;
+        }
     } else {
         temp = copy_to_user(buf, "0", 1);
         if(temp != 0) {
             pr_err("can't coppy to user \n");    
-            return -EFAULT;
+            goto send_data_fail;
         }
     }
 
+    iounmap(io);
+
     pr_info("Read device file\n");
     return 0;
+
+send_data_fail:
+    iounmap(io);
+ioremap_fail:
+    return -EFAULT;
 }
 
 /* 
@@ -133,19 +146,17 @@ static ssize_t dev_write(struct file *filep, const char __user *buf,
 
     kernel_buf = kzalloc(len, GFP_KERNEL);
     if (kernel_buf == NULL)
-	    return -EFAULT;
+	    goto malloc_fail;
 
     temp = copy_from_user(kernel_buf, buf, len);
     if(temp != 0)
-        return -EFAULT;
+        goto get_data_fail;
 
     kernel_buf[len] = '\0';
 
     io = ioremap(GPIO2_BASE_START, GPIO2_BASE_STOP - GPIO2_BASE_START);
     if (io == NULL)
-	    return -EFAULT;
-
-    kstrtol(kernel_buf,10, &temp);
+	    goto get_data_fail;
 
     if (!strcmp(kernel_buf,"0")) {
         pr_info("Write value 0\n");
@@ -155,8 +166,18 @@ static ssize_t dev_write(struct file *filep, const char __user *buf,
         pr_info("Write value 1\n");
     }
 
+    iounmap(io);
+    kfree(kernel_buf);
+    kernel_buf = NULL;
+
     pr_info("kernel_buf: s= %s d=%ld\n", kernel_buf, temp);
     return len;
+
+get_data_fail:
+    kfree(kernel_buf);
+    kernel_buf = NULL;
+malloc_fail:
+    return -EFAULT;
 }
 
 static const struct file_operations fops = {
