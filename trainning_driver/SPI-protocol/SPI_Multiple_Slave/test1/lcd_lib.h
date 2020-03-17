@@ -6,10 +6,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../lcd1/lcd_ioctl.h"
+#include "../driver/lcd_ioctl.h"
 
 
-#define FILENAME 	"/dev/lcd_1"
+#define FILENAME 	"/dev/lcd_0"
 
 extern void draw_string(char *str, Pixel_t color, FontSize_t font);
 extern int open_file();
