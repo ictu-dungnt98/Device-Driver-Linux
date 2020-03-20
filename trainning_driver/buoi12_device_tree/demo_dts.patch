@@ -1,0 +1,17 @@
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index af54fe3796f5..b36ea34c47c4 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -758,6 +758,12 @@
+ 			status = "disabled";
+ 		};
+ 
++		demo_dt: gpio2_2 {
++			compatible = "dungnt98, demo_dts";
++			reg = <0x481ac000 0x1000>; /* platform_get_resource  */
++			demo_led = <&gpio3 19 1>; /* of_get_named_gpio  */
++		};
++
+ 		usb: usb@47400000 {
+ 			compatible = "ti,am33xx-usb";
+ 			reg = <0x47400000 0x1000>;
