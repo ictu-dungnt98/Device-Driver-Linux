@@ -7,7 +7,7 @@ Do following step to use this source code:
 
 1. Modify spi1 node in device tree file : 
 	use 0001-spi-patch.patch file with to modify device tree by command:
-		patch -p1 < ..(path-directoriy)/0001-spi-patch.patch
+		patch -p1 < ..(path-directoriy)/lcd_5110.patch
 
 2. Re-build kernel and coppy file linux/arch/arm/boot/dts/am335x-boneblack.dtb to BOOT partition of sd-card.
 3. Modify path of kernel and toolchain in Makefile file then run following command to build driver:
@@ -30,9 +30,10 @@ Do following step to use this source code:
 ---------------------------------------------------------------
 | LCD_1               BBB                             LCD_2    |
 ---------------------------------------------------------------
-  RESET <---->    P9_25 - GPIO_117            <---->  RESET
-  EN    <---->    P9_28 - SPI1_CS0
-                  P9_42 - SPI1_CS1            <---->  EN
-  DC    <---->    P9_27 - GPIO_115            <---->  DC
-  DIN   <---->    P9_20 - GPIO_112 / SPI1_D1  <---->  DIN
-  CLK   <---->    P9_31 - SPI1_SCLK           <---->  CLK
+  RESET <---->    P9_25-GPIO_117  |  P9_15   <---->  RESET
+  EN    <---->    P9_28-SPI1_CS0
+                  P9_42-SPI1_CS1             <---->  EN
+  DC    <---->    P9_27-GPIO_115  |  P9_23   <---->  DC
+  DIN   <---->    P9_20-GPIO_112/SPI1_D1     <---->  DIN
+  CLK   <---->    P9_31-SPI1_SCLK            <---->  CLK
+

@@ -324,7 +324,7 @@ void LCD_Init(struct nokia_5110 *lcd, unsigned char contrast)
 
 	/*Reset*/
 	LCD_Pin(lcd, LCD_Pin_RST, LCD_State_Low);
-	msleep(20);
+	msleep(10);
 	LCD_Pin(lcd, LCD_Pin_RST, LCD_State_High);
 
 	/*Go in extended mode*/
@@ -370,8 +370,9 @@ void LCD_Clear(struct nokia_5110 *lcd)
 {
 	int pixel = 0;
 
-	for (pixel = 504; pixel > 0; pixel--)
+	for (pixel = 504; pixel > 0; pixel--) {
 		LCD_Write(lcd, LCD_DATA, 0x00);
+	}
 }
 
 void LCD_Invert(struct nokia_5110 *lcd, LCD_Invert_t invert)
@@ -412,8 +413,9 @@ void LCD_Refresh(struct nokia_5110 *lcd)
 		LCD_Write(lcd, LCD_COMMAND, LCD_SETYADDR | i);
 		LCD_Write(lcd, LCD_COMMAND, LCD_SETXADDR | LCD_UpdateXmin);
 
-		for (j = LCD_UpdateXmin; j <= LCD_UpdateXmax; j++)
+		for (j = LCD_UpdateXmin; j <= LCD_UpdateXmax; j++) {
 			LCD_Write(lcd, LCD_DATA, LCD_Buffer[i * LCD_WIDTH + j]);
+		}
 	}
 
 	LCD_UpdateXmin = LCD_WIDTH - 1;
@@ -575,8 +577,8 @@ void LCD_DrawRectangle(unsigned char x0, unsigned char y0, unsigned char x1,
 	LCD_DrawLine(x0, y1, x1, y1, color);
 }
 
-void LCD_DrawFilledRectangle(unsigned char x0, unsigned char y0,
-		unsigned char x1, unsigned char y1, LCD_Pixel_t color)
+void LCD_DrawFilledRectangle(unsigned char x0, unsigned char y0, unsigned char x1,
+				unsigned char y1, LCD_Pixel_t color)
 {
 	for (; y0 < y1; y0++)
 		LCD_DrawLine(x0, y0, x1, y0, color);

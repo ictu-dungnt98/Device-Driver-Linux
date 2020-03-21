@@ -50,7 +50,7 @@ static int nokia5110_open(struct inode *inodep, struct file *filep)
 	}
 
 	if (status) {
-		pr_info("Device has not support \n");
+		pr_info("Device has not support\n");
 		return status;
 	}
 
@@ -83,7 +83,7 @@ static int nokia5110_write(struct file *filep, const char __user *buf,
 	pr_emerg("%s: lcd-dc: %d\n", __func__, lcd->lcd_dc);
 	pr_emerg("%s: lcd-rs: %d\n", __func__, lcd->lcd_rs);
 
-	str = kzalloc(sizeof(Draw_String_t), GFP_KERNEL );
+	str = kzalloc(sizeof(Draw_String_t), GFP_KERNEL);
 
 	ret = copy_from_user(str, buf, sizeof(Draw_String_t));
 	if (ret) {
@@ -99,7 +99,7 @@ static int nokia5110_write(struct file *filep, const char __user *buf,
 	return len;
 }
 
-static long nokia5110_ioctl(struct file* filep, unsigned int cmd,
+static long nokia5110_ioctl(struct file *filep, unsigned int cmd,
 			unsigned long arg)
 {
 	struct nokia_5110 *lcd = filep->private_data;
@@ -173,7 +173,8 @@ static long nokia5110_ioctl(struct file* filep, unsigned int cmd,
 	case IOCTL_DRAW_FILL_CIRCLE:
 			cir = kmalloc(sizeof(Draw_Circle_t), GFP_KERNEL);
 			ret = copy_from_user(cir, argp, sizeof(Draw_Circle_t));
-			LCD_DrawFilledCircle(cir->x, cir->y, cir->r, cir->pixel);
+			LCD_DrawFilledCircle(cir->x, cir->y,
+					     cir->r, cir->pixel);
 			break;
 
 	default:
@@ -214,14 +215,14 @@ static int my_probe(struct spi_device *spi)
 
 	/*
 	res = spi_setup(lcd->spi);
-	pr_info("Dungnt98 chip_select = %d \n", spi->chip_select);
-	pr_info("Dungnt98 clock = %d \n", spi->max_speed_hz);
-	pr_info("Dungnt98 cs = %d \n", spi->cs_gpio);
+	pr_info("Dungnt98 chip_select = %d\n", spi->chip_select);
+	pr_info("Dungnt98 clock = %d\n", spi->max_speed_hz);
+	pr_info("Dungnt98 cs = %d\n", spi->cs_gpio);
 	*/
 /***************** Create Device File ***************/
 	lcd->dev_number = MKDEV(major, minor);
-	lcd->device_p = device_create(class_p,
-			&spi->dev, lcd->dev_number, lcd, "lcd_%d",spi->chip_select);
+	lcd->device_p = device_create(class_p, &spi->dev, lcd->dev_number,
+					lcd, "lcd_%d", spi->chip_select);
 	if (lcd->device_p == NULL) {
 		pr_info("Can not create device\n");
 		goto create_device_failed;
@@ -294,13 +295,14 @@ static struct spi_driver my_spi_driver = {
 	.driver = {
 		.name = "my_spi", /* /sys/bus/spi/drivers/.... */
 		.owner = THIS_MODULE,
-		.of_match_table = dungnt98_of_match,	/* Matching device tree node */
+		.of_match_table = dungnt98_of_match,
 	},
 };
 
 static int __init dungnt_init(void)
 {
 	int res = 0;
+
 	pr_emerg("Dungnt98 %s, %d\n", __func__, __LINE__);
 
 	/* Register range device numbers for number of LCD devices */
@@ -335,7 +337,7 @@ alloc_dev_failed:
 
 static void __exit dungnt_exit(void)
 {
-	
+
 	spi_unregister_driver(&my_spi_driver);
 	class_destroy(class_p);
 	unregister_chrdev_region(dev_num, MAX_SLAVE);

@@ -1,9 +1,3 @@
-From ec8602c9f785dc56e4df9f2e27866d0a1ce531da Mon Sep 17 00:00:00 2001
-From: TrongDungEmb98 <ntdungembedded98@gmail.com>
-Date: Thu, 5 Sep 2019 10:43:21 +0700
-Subject: [PATCH] spi-patch
-
-
 diff --git a/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi b/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
 index bff7f8dae839..783f795f2e0a 100644
 --- a/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
@@ -30,14 +24,14 @@ index 7bcf13bad47d..1bfc989eec11 100644
  
  / {
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index af54fe3796f5..2443c2113e9f 100644
+index af54fe3796f5..de0101d3cb60 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -749,6 +749,7 @@
  			reg = <0x481a0000 0x400>;
  			interrupts = <125>;
  			ti,spi-num-cs = <2>;
-+			cs-gpios = <&gpio3 17 1>, <&gpio0 7 1>;
++			cs-gpios = <&gpio0 7 1>, <&gpio3 17 1>;
  			ti,hwmods = "spi1";
  			dmas = <&edma 42 0
  				&edma 43 0
@@ -50,20 +44,17 @@ index af54fe3796f5..2443c2113e9f 100644
 +				compatible = "dungnt98,spi1";
 +				reg = <0>;
 +				spi-max-frequency = <10000000>;
-+				lcd-dc = <&gpio3 19 1>;
-+				lcd-rs = <&gpio3 21 1>;
++				lcd-rs = <&gpio3 21 1>; /* P9_25*/
++				lcd-dc = <&gpio3 19 1>; /* P9_27*/
 +			};
 +
 +			slave1: lcd1 {
 +				compatible = "dungnt98,spi2";
 +				reg = <1>;
 +				spi-max-frequency = <10000000>;
-+				lcd-dc = <&gpio3 19 1>;
-+				lcd-rs = <&gpio3 21 1>;
++				lcd-rs = <&gpio1 16 1>; /* P9_15 */
++				lcd-dc = <&gpio1 17 1>; /* P9_23 */
 +			};
  		};
  
  		usb: usb@47400000 {
--- 
-2.17.1
-
