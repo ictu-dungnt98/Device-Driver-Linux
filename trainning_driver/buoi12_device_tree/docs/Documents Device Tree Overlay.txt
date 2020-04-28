@@ -1,0 +1,11 @@
+Soft uart bitbanging (source code)
+http://codeintherightway.blogspot.com/2017/09/soft-uart-implementation-for-raspberry.html
+
+UART DTO BBB
+https://learn.adafruit.com/introduction-to-the-beaglebone-black-device-tree/device-tree-overlays
+
+Install DTO BBB
+https://stackoverflow.com/questions/33549211/how-to-add-i2c-devices-on-the-beaglebone-black-using-device-tree-overlays
+
+Document DTO 
+https://www.raspberrypi.org/documentation/configuration/device-tree.md

@@ -1,0 +1,3 @@
+dump dts from running BeagleBone Black:
+
+dtc -O dts -o ~/am335x-boneblack.dts -I dtb /boot/dtbs/4.14.71-ti-r80$/am335x-boneblack.dtb

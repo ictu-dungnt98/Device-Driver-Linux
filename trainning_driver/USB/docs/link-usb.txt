@@ -1,0 +1,3 @@
+https://sites.google.com/site/embedded247/ddcourse/usb-device-drivers-phan-1-usb-driver-tren-linux-1
+https://www.kernel.org/doc/html/latest/driver-api/usb/writing_usb_driver.html
+https://www.linuxjournal.com/article/7353
