@@ -81,7 +81,7 @@ struct my_gpio_bank {
 	struct list_head list_node;
 	void __iomem *base;
 	int irq;
-	struct omap_gpio_reg_offs *regs;
+	const struct omap_gpio_reg_offs *regs;
 	struct gpio_chip chip;
 	u32 mod_usage;
 	u32 irq_usage;
@@ -358,13 +358,13 @@ int my_gpio_set_config(struct gpio_chip *chip,
 /************* Functions services for IRQ setting *************/
 static irqreturn_t my_irq_handler(int irq, void *gpiobank)
 {
-	struct my_gpio_bank *bank = (struct my_gpio_bank *)gpiobank;
+/* 	struct my_gpio_bank *bank = (struct my_gpio_bank *)gpiobank;
 
-	pm_runtime_get_sync(bank->chip.parent);
+	pm_runtime_get_sync(bank->chip.parent); */
 
 	/* Do something here */
 
-	pm_runtime_put(bank->chip.parent);
+/* 	pm_runtime_put(bank->chip.parent); */
 
 	return IRQ_HANDLED;
 }
@@ -375,12 +375,12 @@ static irqreturn_t my_irq_handler(int irq, void *gpiobank)
  */
 static unsigned int my_irq_startup(struct irq_data *d)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
 	unsigned int offset = d->hwirq;
 
 	__my_enable_irq(bank, offset);
-
+ */
 	return 0;
 }
 
@@ -391,12 +391,12 @@ static unsigned int my_irq_startup(struct irq_data *d)
  */
 static void my_irq_shutdown(struct irq_data *d)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
 	unsigned int offset = d->hwirq;
 
 	__clear_irq(bank, offset);
-	__my_disable_irq(bank, offset);
+	__my_disable_irq(bank, offset); */
 }
 
 /**
@@ -410,26 +410,26 @@ static void my_irq_shutdown(struct irq_data *d)
  */
 static void my_ack_irq(struct irq_data *d)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
 	unsigned int offset = d->hwirq;
 
-	__clear_irq(bank, offset);
+	__clear_irq(bank, offset); */
 }
 
 static void my_mask_irq(struct irq_data *d)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+	/* struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
-	unsigned int offset = d->hwirq;
+	unsigned int offset = d->hwirq; */
 }
 
 static void my_unmask_irq(struct irq_data *d)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
 	unsigned int offset = d->hwirq;
-
+ */
 }
 
 /*
@@ -437,9 +437,9 @@ static void my_unmask_irq(struct irq_data *d)
  */
 static int my_irq_type(struct irq_data *d, unsigned int type)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
-	unsigned int offset = d->hwirq;
+	unsigned int offset = d->hwirq; */
 
 	return 0;
 }
@@ -450,10 +450,10 @@ static int my_irq_type(struct irq_data *d, unsigned int type)
  */
 static int my_gpio_wake_enable(struct irq_data *d, unsigned int enable)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
 	unsigned int offset = d->hwirq;
-
+ */
 	return 0;
 }
 
@@ -463,9 +463,9 @@ static int my_gpio_wake_enable(struct irq_data *d, unsigned int enable)
  */
 static void my_irq_bus_lock(struct irq_data *d)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
-	unsigned int offset = d->hwirq;
+	unsigned int offset = d->hwirq; */
 }
 
 /*
@@ -474,9 +474,9 @@ static void my_irq_bus_lock(struct irq_data *d)
  */
 static void my_irq_bus_sync_unlock(struct irq_data *d)
 {
-	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+/* 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 	struct my_gpio_bank *bank = gpiochip_get_data(chip);
-	unsigned int offset = d->hwirq;
+	unsigned int offset = d->hwirq; */
 }
 
 /*****************************************************************************/
@@ -622,9 +622,11 @@ static int my_gpio_probe(struct platform_device *pdev)
 
 static int my_gpio_remove(struct platform_device *pdev)
 {
+	struct my_gpio_bank *bank;
+
 	pr_info("Dungnt98 %s %d\n", __func__, __LINE__);
 
-	struct my_gpio_bank *bank = platform_get_drvdata(pdev);
+	bank  = platform_get_drvdata(pdev);
 
 	gpiochip_remove(&bank->chip);
 

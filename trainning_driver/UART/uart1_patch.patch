@@ -1,0 +1,55 @@
+diff --git a/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi b/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
+index 0396c3997a6c..60f2aa3b67de 100644
+--- a/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-pinmux-spi1.dtsi
+@@ -15,7 +15,7 @@
+ 			0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+ 			0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+ 			0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
+-			// 0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */		>;
++			0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */		>;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index f72baff362fc..401aaba42b86 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -7,6 +7,8 @@
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
+ #include "am335x-boneblack-common.dtsi"
++#include "am335x-bone-pinmux-spi1.dtsi"
++#include "am335x-bone-pinmux-ttyS1.dtsi"
+ 
+ / {
+ 	model = "TI AM335x BeagleBone Black";
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index f43988f276f0..4cd1e794fef0 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -756,6 +756,24 @@
+ 				&edma 45 0>;
+ 			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 			status = "disabled";
++
++			cs-gpios = <&gpio0 7 1>, <&gpio3 17 1>;
++			slave0: lcd0 {
++				compatible = "dungnt98,spi1";
++				reg = <0>;
++				spi-max-frequency = <10000000>;
++				lcd-rs = <&gpio3 21 1>; /* P9_25*/
++				lcd-dc = <&gpio3 19 1>; /* P9_27*/
++			};
++
++			slave1: lcd1 {
++				compatible = "dungnt98,spi2";
++				reg = <1>;
++				spi-max-frequency = <10000000>;
++				lcd-rs = <&gpio1 16 1>; /* P9_15 */
++				lcd-dc = <&gpio1 17 1>; /* P9_23 */
++			};
++
+ 		};
+ 
+ 		usb: usb@47400000 {

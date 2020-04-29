@@ -1,0 +1,7 @@
+1. Khi chạy app với share lib, nếu share lib không nằm trong /usr/lib hay các folder mặc định.
+có thể chỉ định đường dẫn tới folder chứa lib để chạy app bằng lệnh (LD_LIBRARY_PATH=<path_to_lib.so> ./app)
+ví dụ:
+	LD_LIBRARY_PATH=./ ./app
+
+2. Buildroot sẽ build crosslib và đặt trong output/target/usr/lib
+coppy cái share lib trong này vào rootfs trên board là dùng dc ngay.

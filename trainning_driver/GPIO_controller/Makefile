@@ -3,8 +3,8 @@ PWD := $(shell pwd)
 src-file = ./my_gpio.c
 obj-m += my_gpio.o
 
-CROSS := /data/dungnt98/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
-KERNEL := /data/dungnt98/linux/
+CROSS := /home/dungnt98/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+KERNEL := /home/dungnt98/linux/
 
 all:
 	make ARCH=arm CROSS_COMPILE=$(CROSS) -C $(KERNEL) SUBDIRS=$(PWD) modules
