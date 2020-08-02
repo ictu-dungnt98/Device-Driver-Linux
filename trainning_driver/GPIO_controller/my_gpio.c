@@ -81,7 +81,7 @@ struct my_gpio_bank {
 	struct list_head list_node;
 	void __iomem *base;
 	int irq;
-	struct omap_gpio_reg_offs *regs;
+	const struct omap_gpio_reg_offs *regs;
 	struct gpio_chip chip;
 	u32 mod_usage;
 	u32 irq_usage;
@@ -566,8 +566,8 @@ static int my_gpio_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct my_gpio_bank *bank = NULL;
 	struct irq_chip *irqc;
-	struct omap_gpio_reg_offs *pdata;
-	struct of_device_id *match;
+	const struct omap_gpio_reg_offs *pdata;
+	const struct of_device_id *match;
 
 	/* get struct regs offset */
 	match = of_match_device(of_match_ptr(my_of_match), dev);
@@ -622,9 +622,11 @@ static int my_gpio_probe(struct platform_device *pdev)
 
 static int my_gpio_remove(struct platform_device *pdev)
 {
+	struct my_gpio_bank *bank;
+
 	pr_info("Dungnt98 %s %d\n", __func__, __LINE__);
 
-	struct my_gpio_bank *bank = platform_get_drvdata(pdev);
+	bank  = platform_get_drvdata(pdev);
 
 	gpiochip_remove(&bank->chip);
 
