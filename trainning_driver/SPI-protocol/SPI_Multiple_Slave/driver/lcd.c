@@ -468,9 +468,9 @@ void LCD_Putc(char c, LCD_Pixel_t color, LCD_FontSize_t size)
 	}
 
 	for (i = 0; i < c_width; i++) {
-		if (c < 32)
-
-		else if (size == LCD_FontSize_3x5) {
+		if (c < 32) {
+		}
+		else if (size == LCD_FontSize_3x5)
 			b = LCD_Font3x5[c - 32][i];
 		else
 			b = LCD_Font5x7[c - 32][i];
