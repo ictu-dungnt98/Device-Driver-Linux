@@ -99,13 +99,19 @@ static void *thread2_handle(void *arg)
     return 0;
 }
 
-int main()
+int main(int argc, char** argv)
 {
     pthread_t thread1, thread2;
 
-    fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_TRUNC | O_SYNC);
+    if (argc < 2) {
+	    printf("try again with syntax as: ./%s /dev/ttyx with x is 0 1 2 ...\n", argv[0]);
+	    return 0;
+    }
+
+
+    fd = open(argv[1], O_RDWR | O_NOCTTY | O_TRUNC | O_SYNC);
     if (fd) {
-        printf("Can not open serial port /dev/ttyS0. %s\n", strerror(errno));
+        printf("Can not open serial port. %s\n", strerror(errno));
     }
 
     if (0 != pthread_create(&thread1, NULL, thread1_handle, NULL)) {
