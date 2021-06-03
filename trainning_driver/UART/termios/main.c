@@ -9,12 +9,21 @@
 #include <pthread.h>
 #include <termios.h> /*PPSIX Terminal Control Definition*/
 #include <unistd.h>  /*Unix Standard Function Definitions*/
+#include <string.h>
 
 #define FALSE -1
 #define TRUE 0
 
+
+static char log_file_name[100];
+static char g_hunonic_ir_log[4096];
+static int p_receiver = 0;
+static int uart_available = 0;
+
 static void *thread1_handle(void *arg);
 static void *thread2_handle(void *arg);
+
+void create_command_log_file(char *log_buff);
 
 /*******************************************************************
  * Name: UART0_Open
@@ -277,7 +286,7 @@ int UART0_Recv(int fd, char *rcv_buf, int data_len)
         return len;
     } else {
         printf("Sorry, It's timeout. Can not get any data!\n");
-        return FALSE;
+        return 0;
     }
 }
 
@@ -297,7 +306,7 @@ int UART0_Send(int fd, char *send_buf, int data_len)
     len = write(fd, send_buf, data_len);
 
     if (len == data_len) {
-        printf("send data is %s\n", send_buf);
+        printf("send %s\n", send_buf);
         return len;
     } else {
         tcflush(fd, TCOFLUSH);
@@ -318,17 +327,19 @@ int main(int argc, char **argv)
     int len;
     int i;
 
-    if (argc != 3) {
-        printf("Usage: %s /dev/ttySn\n", argv[0]);
+    if (argc < 3) {
+        printf("Usage: %s /dev/ttySn <file_name>\n", argv[0]);
         return FALSE;
     }
+    memset(log_file_name, 0, sizeof(log_file_name));
+    memcpy(log_file_name, argv[2], strlen(argv[2]));
 
     /* Open /dev/tty* file for work with */
     fd = UART0_Open(fd, argv[1]);  // Open the serial port and return the file descriptor
 
     /* Setting uart attributes */
     do {
-        err = UART0_Init(fd, 9600, 0, 8, 1, 'N');
+        err = UART0_Init(fd, 115200, 0, 8, 1, 'N');
         printf("Set Port Exactly!\n");
     } while (FALSE == err || FALSE == fd);
 
@@ -363,32 +374,28 @@ void clean_stdin(void)
 static void *thread1_handle(void *arg)
 {
     int cmd;
-    char command[256];
     int fd = (*(int*)arg);
 
     while (1) {
-        memset(command, 0, sizeof(command));
         cmd = 0;
 
         printf("Select command to send\n");
+        printf("1. clear buffer\n");
         scanf("%d", &cmd);
 
         clean_stdin();
 
         switch (cmd) {
             case 1: {
-                sprintf(command, "%s", "Trong Dung HTN k15A");
-            } break;
-
-            case 2: {
-                sprintf(command, "%s", "Do An Tot Nghiep 2021");
+                printf("Clear buffer\n");
+                memset(g_hunonic_ir_log, 0, sizeof(g_hunonic_ir_log));
+                p_receiver = 0;
             } break;
 
             default:
                 break;
         }
 
-        UART0_Send(fd, command, strlen(command));
         fsync(fd);
     }
 
@@ -397,9 +404,10 @@ static void *thread1_handle(void *arg)
 
 static void *thread2_handle(void *arg)
 {
-    char buff[512];
+    char buff[1024];
     int rx_data_len;
     int fd = (*(int*)arg);
+    char *temp = NULL;
 
     printf("thread2 run\n");
 
@@ -407,10 +415,26 @@ static void *thread2_handle(void *arg)
         memset(buff, 0, sizeof(buff));
         rx_data_len = 0;
 
-        rx_data_len = read(fd, buff, 512);
+        rx_data_len = UART0_Recv(fd, buff, 512);
 
-        if (rx_data_len > 0)
-            printf("%s", buff);
+        if (rx_data_len > 0) {
+            printf("\n****T O T A L L E N : %d **** \n <%s> \n********* \n", strlen(g_hunonic_ir_log), g_hunonic_ir_log);
+            
+            memcpy(&g_hunonic_ir_log[p_receiver], buff, strlen(buff));
+            p_receiver += strlen(buff);
+
+            uart_available = 1;
+
+            
+            if (strstr(g_hunonic_ir_log, "rawData") != NULL) {
+                temp  = strstr(g_hunonic_ir_log, "rawData");
+                
+                printf("\n======= Raw: < %s > ====\n", temp);
+
+                if (strstr(temp, "}") != NULL)
+                    create_command_log_file(g_hunonic_ir_log);    
+            }
+        }
 
         usleep(10000);
     }
@@ -420,3 +444,55 @@ static void *thread2_handle(void *arg)
     return 0;
 }
 
+/* */
+void create_command_log_file(char *log_buff)
+{
+    char log[2048];
+    char* p_cmd_entry;
+    int fd;
+
+    printf("Process data\n");
+
+    memset(log, 0, 2048);
+    memcpy(log, log_buff, strlen(log_buff));
+
+    printf("\n==============LOG:============\n %s \n=======================\n", log);
+
+    p_cmd_entry = strstr(log, "rawData");
+    if (p_cmd_entry == NULL) {
+        perror("not match rawData\n");
+        return;
+    }
+
+    p_cmd_entry = strstr(p_cmd_entry, "{");
+    if (p_cmd_entry == NULL) {
+        perror("not found {\n");
+        return;
+    }
+    
+    system("clear");
+    printf("raw: %s\n", p_cmd_entry);
+    
+    p_cmd_entry ++;
+    char *raw_data = strtok(p_cmd_entry, "}");
+    printf("new_raw: %s\n", raw_data);
+
+    if (strlen(raw_data) == 0) {
+        perror("strtok not reach limited character\n");
+        return;
+    }
+
+    fd = open(log_file_name, O_RDWR | O_CREAT);
+    if (fd < 0) {
+        perror("can not open file\n");;
+        return;
+    }
+
+    int len_write = write(fd, raw_data, strlen(raw_data));
+
+    if (len_write < 0) {
+        perror("Write log to file error\n");
+    } else {
+        printf("write data to %s success with len %d\n", log_file_name, len_write);
+    }
+}

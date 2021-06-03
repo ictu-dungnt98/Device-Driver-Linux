@@ -6,13 +6,16 @@ OBJECTS = $(SOURCES:.c=.o)
 
 TARGET = uart_app
 
-CC := /home/dungnt98/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc
+CC := gcc
+
+FLAGS := -g -pthread
 
 
-all: $(OBJECTS)
-	$(CC) -o $(TARGET) $(OBJECTS) -pthread
+all: clean $(OBJECTS)
+	$(CC) -o $(TARGET) $(OBJECTS) $(FLAGS)
+	sudo gnome-terminal -- sh -c "gdb --args $(TARGET) /dev/ttyUSB0 $(FILE)"
 $(OBJECTS):
-	$(CC) -c $(SOURCES) -pthread
+	$(CC) -c $(SOURCES) $(FLAGS)
 
 clean: 
 	rm -f $(OBJECTS) $(TARGET)
