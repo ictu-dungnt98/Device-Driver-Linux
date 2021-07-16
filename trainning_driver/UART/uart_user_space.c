@@ -40,27 +40,11 @@ static void *thread1_handle(void *arg)
 
         switch (cmd) {
             case 1: {
-                sprintf(command,
-                        "{\"cmd_type\":0, \"brand\":12, \"power\":0, \"temp\":18, \"mode\":1, \"fan\":1, \"swing\":1, "
-                        "\"model\": 4}");
+                sprintf(command, "%s", "Trong Dung HTN K15A\n");
             } break;
 
             case 2: {
-                sprintf(command,
-                        "{\"cmd_type\":1, \"brand\":12, \"power\":0, \"temp\":18, \"mode\":1, \"fan\":1, \"swing\":1, "
-                        "\"model\": 4}");
-            } break;
-
-            case 3: {
-                sprintf(command,
-                        "{\"cmd_type\":2, \"brand\":0, \"power\":1, \"temp\":18, \"mode\":1, \"fan\":1, \"swing\":1, "
-                        "\"model\": 4}");
-            } break;
-
-            case 4: {
-                sprintf(command,
-                        "{\"cmd_type\":2, \"brand\":0, \"power\":0, \"temp\":18, \"mode\":1, \"fan\":1, \"swing\":1, "
-                        "\"model\": 4}");
+                sprintf(command, "%s", "Do An Tot Nghiep 2021");
             } break;
 
             default:

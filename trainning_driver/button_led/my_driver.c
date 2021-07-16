@@ -33,38 +33,62 @@
 #include <linux/module.h>
 #include <linux/timer.h>
 
-// Define inputs and output pins 
+#define BUTTON1 62
+#define BUTTON2 36
+#define BUTTON3 32
+#define BUTTON4 86 
 
-#define GPIO_IN 66
-#define GPIO_LED1 69
-#define GPIO_LED2 45 
+#define LED1 66 
+#define LED2 69 
+#define LED3 45 
+#define LED4 47 
 
-// Define the delay to postpone interrupt action 
-#define DELAY 1 // 1 second
 
-// Define interrupt request number 
-#define BUTTON_IRQ gpio_to_irq(GPIO_IN)
+unsigned int buttons[] = {BUTTON4, BUTTON2, BUTTON3, BUTTON1};
+unsigned int leds[] = {LED1, LED2, LED3, LED4};
 
-static void switch_leds_state(void)
+/* Define interrupt request number  */
+
+static void toggle_leds(int led)
 {
-	static int pin_value = 0;
+	static int pin_value;
 
-	gpio_set_value(GPIO_LED1, pin_value); 
+	if (led < 0 || led > 3)
+		return;
+
+	pin_value = gpio_get_value(leds[led]); 
 	
 	pin_value = 1 - pin_value;
 	
-	gpio_set_value(GPIO_LED2, pin_value);
+	gpio_set_value(leds[led], pin_value);
 
-        printk(KERN_INFO "Leds state switched!");
+        printk(KERN_INFO "Toggle Led%d\n", led);
 }
 
 // Create the interrupt handler 
 static irqreturn_t my_handler(int irq, void * ident)
 {
-	printk(KERN_INFO "\nInterrupt received from GPIO pin %d", GPIO_IN);
-	printk(KERN_INFO "Leds state switch in %d second... ", DELAY);
+	int button = -1;
+
+	printk(KERN_INFO "Have interrupt at IRQ%d\n", irq);
+
+	if (irq == gpio_to_irq(BUTTON1))
+		button = 0;
+
+	else if (irq == gpio_to_irq(BUTTON2))
+		button = 1;
+
+	else if (irq == gpio_to_irq(BUTTON3))
+		button = 2;
+
+	else if (irq == gpio_to_irq(BUTTON4))
+		button = 3;
 	
-	switch_leds_state();
+	if (button < 0 || button > 3)
+		return IRQ_HANDLED;
+
+	printk(KERN_INFO "Interrupt received from button%d\n", button);
+	toggle_leds(button);
 
 	return IRQ_HANDLED;
 }
@@ -73,76 +97,70 @@ static irqreturn_t my_handler(int irq, void * ident)
 
 static int __init exemple_init (void)
 {
-	int err;
-	
+	int err;	
+	int i;
+	int j;
+
 	printk(KERN_INFO "Loading GPIO module \n");
 
-	// Request GPIO for led 1 :
 
-	if ((err = gpio_request(GPIO_LED1, THIS_MODULE->name)) !=0)
-	{
-		return err;
-        }
+	for(i = 0; i < 4; i++) { 
+		/* Leds */
+		if ((err = gpio_request(leds[i], THIS_MODULE->name)) !=0) {
+			printk(KERN_INFO "Request GPIO output fail\n");
+			goto led_init_fail;
+			return err;
+	        }
+		/* Set pin to output mode */
+		if ((err = gpio_direction_output(leds[i], 1)) !=0) {
+	                goto led_init_fail;
+			return err;
+	        }
 
-	// Set GPIO_LED1 to output mode :
+        	/* Buttons */ 
+	        if ((err = gpio_request(buttons[i], THIS_MODULE->name)) !=0) {
+			goto button_init_fail;
+			return err;
+	        }
+	    	/* Set GPIO_IN to input mode */
+	        if ((err = gpio_direction_input(buttons[i])) !=0) {
+	                goto button_init_fail;
+			return err;
+	        }
 
-	if ((err = gpio_direction_output(GPIO_LED1, 1)) !=0)
-	{
-                gpio_free(GPIO_LED1);
-                return err;
-        }
+		gpio_set_debounce(buttons[i], 100);
+	
+		/* Request BUTTON_IRQ and setting its type to trigger rising */
+		printk(KERN_INFO "Requesting irq %d\n", gpio_to_irq(buttons[i]));
+		
+		err = request_irq(gpio_to_irq(buttons[i]), my_handler,
+				IRQF_SHARED | IRQF_TRIGGER_RISING,
+				THIS_MODULE->name, THIS_MODULE->name);
+		if (err != 0) {
+			printk(KERN_INFO "Error %d: could not request irq: %d\n", err, gpio_to_irq(buttons[i]));
+			goto request_irq_fail;
+			return err;
+		}
+	
+		printk(KERN_INFO "Waiting for interrupts ... \n");
 
-	// Request GPIO for led 2 : 
+		continue;
 
-	if ((err = gpio_request(GPIO_LED2, THIS_MODULE->name)) !=0)
-	{	
-                gpio_free(GPIO_LED1);	
-		return err;
-        }
+request_irq_fail:
+		gpio_free(buttons[i]);
+button_init_fail:
+                gpio_free(leds[i]);
+led_init_fail:
+		/* free previous gpio pin requested */
+                for (j = 0; j < i; j++) {
+                        gpio_free(leds[j]);
+	                gpio_free(buttons[j]);
+			free_irq(gpio_to_irq(buttons[j]), THIS_MODULE->name);
+                }
 
-	// Set GPIO_LED2 to output mode :
-
-	if ((err = gpio_direction_output(GPIO_LED2, 0)) !=0)
-	{
-                gpio_free(GPIO_LED1);
-                gpio_free(GPIO_LED2);
-                return err;
-        }
-
-        // Request GPIO_IN : 
-
-        if ((err = gpio_request(GPIO_IN, THIS_MODULE->name)) !=0)
-	{
-     		gpio_free(GPIO_LED1);
-                gpio_free(GPIO_LED2);
-		return err;
-        }
-   
-    	// Set GPIO_IN to input mode :
-
-        if ((err = gpio_direction_input(GPIO_IN)) !=0)
-	{
-		gpio_free(GPIO_LED1);
-                gpio_free(GPIO_LED2);
-                gpio_free(GPIO_IN);
-                return err;
-        }
-
-	gpio_set_debounce(GPIO_IN, 100);
-
-	// Request BUTTON_IRQ and setting its type to trigger rising : 
-
-	printk(KERN_INFO "Requesting irq %d\n", BUTTON_IRQ);
-	if((err = request_irq      (gpio_to_irq(GPIO_IN), my_handler, IRQF_SHARED | IRQF_TRIGGER_RISING, THIS_MODULE->name, THIS_MODULE->name)) != 0)
-	{
-		printk(KERN_INFO "Error %d: could not request irq: %d\n", err, GPIO_IN);
-		gpio_free(GPIO_LED1);	
-		gpio_free(GPIO_LED2);
-		gpio_free(GPIO_IN);
 		return err;
 	}
-	
-	printk(KERN_INFO "Waiting for interrupts ... \n");
+
 
 	return 0; 
 
@@ -152,11 +170,12 @@ static int __init exemple_init (void)
 
 static void __exit exemple_exit (void) 
 {
-
-	free_irq(gpio_to_irq(GPIO_IN), THIS_MODULE->name);	
-	gpio_free(GPIO_LED1);	
-	gpio_free(GPIO_LED2);
-	gpio_free(GPIO_IN);
+	int i = 0;
+	
+	for(i = 0; i < 4; i++) {
+		free_irq(gpio_to_irq(buttons[i]), THIS_MODULE->name);	
+		gpio_free(leds[i]);
+	}
 }
 
 module_init(exemple_init);
