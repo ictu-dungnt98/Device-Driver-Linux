@@ -1,0 +1,13 @@
+sudo mkfs.jffs2 -s 256 -e 0x10000 -p 0xAF0000 -d /home/fanning/v3s/ftel-test-video-home-gw-082020/buildroot-2018.08.2/output/images/rootfs -o jffs2.img && echo "done"
+
+#sudo cp /home/fanning/v3s/ftel-test-video-home-gw-082020/buildroot-2018.08.2/output/images/rootfs.jffs2 ./jffs2.img
+
+dd if=/dev/zero of=flashimg.bin bs=16M count=1 && echo "done"
+
+dd if=uboot/u-boot-sunxi-with-spl.bin of=flashimg.bin bs=1K conv=notrunc && echo "done"
+
+dd if=zero-4.13.y/arch/arm/boot/dts/sun8i-v3s-licheepi-zero-dock.dtb of=flashimg.bin bs=1K seek=1024  conv=notrunc && echo "done"
+
+dd if=zero-4.13.y/arch/arm/boot/zImage of=flashimg.bin bs=1K seek=1088  conv=notrunc && echo "done"
+
+dd if=jffs2.img of=flashimg.bin  bs=1K seek=5184 conv=notrunc && echo "done"
