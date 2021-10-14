@@ -1,0 +1,3 @@
+sudo rm -rf buildroot-2019.11/output/images/rootfs && sudo mkdir -p buildroot-2019.11/output/images/rootfs
+sudo tar -C buildroot-2019.11/output/images/rootfs -xvf buildroot-2019.11/output/images/rootfs.tar
+sudo chown root buildroot-2019.11/output/images/rootfs/bin/* -R
