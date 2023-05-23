@@ -1,0 +1,2 @@
+1.To verify that a certain pinctrl has been picked up by the driver and correctly applied, the debug information available via sysfs can be helpful:
+  # cat /sys/kernel/debug/pinctrl/pinctrl-handles
