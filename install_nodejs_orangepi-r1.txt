@@ -1,0 +1,42 @@
+
+step1 : 
+	wget https://nodejs.org/dist/v20.17.0/node-v20.17.0-linux-armv7l.tar.xz
+
+step2 : 
+	tar -xvf ./node-v20.17.0-linux-armv7l.tar -C /opt/
+
+step 3:
+	vim .bashrc
+	PATH=$PATH:/opt/node-v20.17.0-linux-armv7l/bin
+	source .bashrc
+
+step 4:
+	node -v
+	npm -v
+	npm install mqtt
+	ls
+	ifconfig
+	cd mqttAppFwd/
+	ls
+	node ./appMqtt1.js
+
+step 5:
+	vim ./run.sh
+	chmod 777 ./run.sh
+	/root/ru
+	/root/mqttAppFwd/run.sh
+	pwd
+	vim /etc/systemd/system/mqtt.service
+	sudo systemctl enable mqtt.service
+	sudo systemctl start mqtt.service
+	sudo systemctl status mqtt.service
+	journalctl -f -u mqtt.service
+	sudo systemctl stop mqtt.service
+	vim run.sh
+	sudo systemctl restart mqtt.service
+	sudo systemctl status mqtt.service
+	journalctl -f -u mqtt.service
+	history
+
+Note:
+	thông thường, user application sẽ đặt tại /usr/local/bin
